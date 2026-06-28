@@ -46,7 +46,6 @@
     display: flex; flex-direction: column; align-items: center;
   }
 
-  /* ビーカーと試験管を横に並べる */
   .apparatus-row {
     display: flex;
     align-items: flex-end;
@@ -58,55 +57,101 @@
   .control-section { flex: 1; overflow-y: auto; padding: 16px; }
 
   /* ===== ビーカー（反応元） ===== */
-  .beaker-area { position: relative; width: 120px; height: 170px; flex-shrink: 0; }
+  .beaker-area { 
+    position: relative; 
+    width: 120px; 
+    height: 220px; 
+    flex-shrink: 0;
+  }
   .beaker {
-    position: absolute; bottom: 0; left: 0;
-    width: 120px; height: 130px;
+    position: absolute; 
+    bottom: 30px; 
+    left: 0;
+    width: 120px; 
+    height: 130px;
     border: 3px solid rgba(255,255,255,0.45);
-    border-top: none; border-radius: 0 0 16px 16px;
-    overflow: hidden; background: rgba(255,255,255,0.04);
+    border-top: none; 
+    border-radius: 0 0 16px 16px;
+    overflow: hidden; 
+    background: rgba(255,255,255,0.04);
     transition: all 0.3s ease;
   }
-  .beaker.broken { opacity: 0; transform: scale(0.8); animation: breakGlass 0.4s ease-out; }
+  .beaker.broken { 
+    opacity: 0; 
+    transform: scale(0.8); 
+    animation: breakGlass 0.4s ease-out; 
+  }
   @keyframes breakGlass {
     0% { opacity: 1; transform: scale(1) rotate(0deg); }
     50% { transform: scale(1.1) rotate(2deg); }
     100% { opacity: 0; transform: scale(0.6) rotate(-5deg); }
   }
+  
   .liquid {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    height: 0%; background: rgba(220, 235, 245, 0.12);
-    transition: background 0.5s ease, height 0.5s ease;
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    right: 0;
+    height: 0%; 
+    background: rgba(220, 235, 245, 0.12);
+    transition: background 0.5s ease, height 0.3s linear;
   }
   .liquid.filled { height: 58%; }
   .liquid.cloudy { background: rgba(245, 245, 245, 0.78) !important; }
   .liquid::before {
-    content: ""; position: absolute; top: -5px; left: 0; right: 0;
-    height: 8px; border-radius: 50%; background: rgba(255,255,255,0.25);
+    content: ""; 
+    position: absolute; 
+    top: -5px; 
+    left: 0; 
+    right: 0;
+    height: 8px; 
+    border-radius: 50%; 
+    background: rgba(255,255,255,0.25);
     animation: wave 2.5s ease-in-out infinite;
   }
   @keyframes wave {
     0%, 100% { transform: translateX(0) scaleX(1); }
     50% { transform: translateX(2px) scaleX(1.05); }
   }
+  
   .solids-display {
-    position: absolute; bottom: 6px; left: 6px; right: 6px;
-    display: flex; gap: 3px; flex-wrap: wrap;
-    align-content: flex-end; justify-content: center; z-index: 2;
+    position: absolute; 
+    bottom: 6px; 
+    left: 6px; 
+    right: 6px;
+    display: flex; 
+    gap: 3px; 
+    flex-wrap: wrap;
+    align-content: flex-end; 
+    justify-content: center; 
+    z-index: 2;
   }
   .solid-item {
-    width: 22px; height: 22px;
+    width: 22px; 
+    height: 22px;
     transition: opacity 1.5s ease, transform 1.5s ease;
   }
-  .solid-item.dissolving { opacity: 0; transform: scale(0.3); }
+  .solid-item.dissolving { 
+    opacity: 0; 
+    transform: scale(0.3); 
+  }
 
   .bubbles {
-    position: absolute; top: 12%; left: 0; width: 100%;
-    height: 50%; pointer-events: none; z-index: 3;
+    position: absolute; 
+    top: 12%; 
+    left: 0; 
+    width: 100%;
+    height: 50%; 
+    pointer-events: none; 
+    z-index: 3;
   }
   .bubble {
-    position: absolute; width: 3px; height: 3px; border-radius: 50%;
-    background: rgba(255,255,255,0.7); animation: rise 2s ease-in infinite;
+    position: absolute; 
+    width: 3px; 
+    height: 3px; 
+    border-radius: 50%;
+    background: rgba(255,255,255,0.7); 
+    animation: rise 2s ease-in infinite;
   }
   @keyframes rise {
     0% { opacity: 1; transform: translateY(0px); }
@@ -122,27 +167,149 @@
   .bubble:nth-child(8) { left: 85%; animation-delay: 0.35s; }
 
   .explosion {
-    position: absolute; bottom: 50px; left: 50%;
-    transform: translateX(-50%); width: 90px; height: 90px;
+    position: absolute; 
+    bottom: 50px; 
+    left: 50%;
+    transform: translateX(-50%); 
+    width: 100px; 
+    height: 100px;
     background: radial-gradient(circle, #ffff00 0%, #ff8800 40%, #ff0000 70%, transparent 100%);
-    border-radius: 50%; opacity: 0; pointer-events: none; z-index: 6;
+    border-radius: 50%; 
+    opacity: 0; 
+    pointer-events: none; 
+    z-index: 5;
   }
   .explosion.active { animation: explode 0.6s ease-out; }
   @keyframes explode {
     0% { opacity: 1; transform: translateX(-50%) scale(0.3); }
     100% { opacity: 0; transform: translateX(-50%) scale(1.8); }
   }
-  .testtube.broken { animation: breakGlass 0.4s ease-out forwards; }
 
   .paper {
-    position: absolute; top: 6px; right: -6px;
-    width: 16px; height: 55px; border-radius: 2px;
-    background: #fff; border: 1px solid var(--line);
-    transition: background 0.5s ease; display: none; z-index: 3;
+    position: absolute; 
+    top: 6px; 
+    right: -6px;
+    width: 16px; 
+    height: 55px; 
+    border-radius: 2px;
+    background: #fff; 
+    border: 1px solid var(--line);
+    transition: background 0.5s ease; 
+    display: none; 
+    z-index: 3;
   }
   .paper.show { display: block; }
 
-  /* ===== ガラス管（ビーカー→試験管） ===== */
+  /* ===== アルコールランプ ===== */
+  .alcohol-lamp-area {
+    position: absolute;
+    bottom: -56px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+  }
+  .lamp-svg {
+    width: 56px;
+    height: 56px;
+    transition: transform 0.15s ease;
+  }
+  .alcohol-lamp-area:hover .lamp-svg { transform: scale(1.05); }
+  /* 炎（点火時に表示） */
+  .lamp-flame-svg {
+    opacity: 0;
+    transform-origin: center bottom;
+  }
+  .lamp-flame-svg.active {
+    opacity: 1;
+    animation: lampFlicker 0.15s infinite alternate;
+  }
+  @keyframes lampFlicker {
+    0% { transform: scaleY(1) scaleX(1); }
+    100% { transform: scaleY(1.08) scaleX(0.96); }
+  }
+  .lamp-tag {
+    font-size: 0.62rem;
+    color: var(--muted);
+    margin-top: 2px;
+    white-space: nowrap;
+  }
+  .alcohol-lamp-area.on .lamp-tag { color: #ff9500; font-weight: 700; }
+
+  /* 加熱後の結晶 */
+  .crystals-display {
+    position: absolute;
+    bottom: 8px;
+    left: 4px;
+    right: 4px;
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-content: flex-end;
+    justify-content: flex-start;
+    z-index: 2;
+    height: 50px;
+  }
+  .crystal {
+    width: 24px;
+    height: 24px;
+    opacity: 0;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+    animation: crystallize 0.8s ease-out forwards;
+  }
+  @keyframes crystallize {
+    0% { opacity: 0; transform: translateY(20px) scale(0.3); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .info { 
+    margin-top: 10px; 
+    text-align: center; 
+    min-height: 80px;
+  }
+  .label { 
+    font-weight: 700; 
+    font-size: 0.9rem; 
+    min-height: 1.6em; 
+  }
+  .ph { 
+    margin-top: 2px; 
+    font-size: 0.7rem; 
+    color: var(--muted); 
+    min-height: 1.4em; 
+  }
+  .recipe { 
+    margin-top: 6px; 
+    font-size: 0.7rem; 
+    color: var(--muted); 
+    min-height: 2em; 
+  }
+  .gas-produced { 
+    margin-top: 3px; 
+    font-size: 0.75rem; 
+    color: #4ade80; 
+    font-weight: 600; 
+  }
+  .reaction {
+    margin-top: 6px; 
+    font-size: 0.65rem; 
+    color: var(--accent);
+    min-height: 2em; 
+    font-weight: 600;
+    background: rgba(91, 155, 213, 0.12); 
+    padding: 4px; 
+    border-radius: 8px;
+  }
+  .smell { 
+    margin-top: 3px; 
+    font-size: 0.7rem; 
+    color: #fbbf24; 
+  }
+
+  /* ===== ガラス管 ===== */
   .tube-connector {
     width: 30px;
     height: 4px;
@@ -154,8 +321,12 @@
     overflow: hidden;
   }
   .tube-connector .flow {
-    position: absolute; top: 0; left: -20px;
-    width: 12px; height: 4px; border-radius: 2px;
+    position: absolute; 
+    top: 0; 
+    left: -20px;
+    width: 12px; 
+    height: 4px; 
+    border-radius: 2px;
     background: rgba(255,255,255,0.8);
     opacity: 0;
   }
@@ -169,16 +340,23 @@
     100% { opacity: 0; left: 40px; }
   }
 
-  /* ===== 試験管（確認用） ===== */
+  /* ===== 試験管 ===== */
   .testtube-area {
-    position: relative; width: 60px; height: 170px; flex-shrink: 0;
-    opacity: 0.35; transition: opacity 0.4s ease;
+    position: relative; 
+    width: 60px; 
+    height: 170px; 
+    flex-shrink: 0;
+    opacity: 0.35; 
+    transition: opacity 0.4s ease;
   }
   .testtube-area.has-gas { opacity: 1; }
   .testtube {
-    position: absolute; bottom: 0; left: 50%;
+    position: absolute; 
+    bottom: 0; 
+    left: 50%;
     transform: translateX(-50%);
-    width: 36px; height: 110px;
+    width: 36px; 
+    height: 110px;
     border: 3px solid rgba(255,255,255,0.4);
     border-top: none;
     border-radius: 0 0 16px 16px;
@@ -186,38 +364,58 @@
     background: rgba(255,255,255,0.03);
   }
   .testtube-cap {
-    position: absolute; bottom: 110px; left: 50%;
+    position: absolute; 
+    bottom: 110px; 
+    left: 50%;
     transform: translateX(-50%);
-    width: 40px; height: 6px;
+    width: 40px; 
+    height: 6px;
     border: 3px solid rgba(255,255,255,0.4);
     border-bottom: none;
     border-radius: 4px 4px 0 0;
   }
   .gas-fill {
-    position: absolute; bottom: 0; left: 0; right: 0;
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    right: 0;
     height: 0%;
     transition: height 0.5s ease, background 0.4s ease;
   }
   .gas-fill.filled { height: 85%; }
   .limewater-fill {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    height: 0%; background: rgba(220, 235, 245, 0.15);
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    right: 0;
+    height: 0%; 
+    background: rgba(220, 235, 245, 0.15);
     transition: height 0.4s ease, background 0.5s ease;
   }
   .limewater-fill.show { height: 30%; }
   .limewater-fill.cloudy { background: rgba(245,245,245,0.85) !important; }
 
   .tube-flame {
-    position: absolute; bottom: 116px; left: 50%;
+    position: absolute; 
+    bottom: 116px; 
+    left: 50%;
     transform: translateX(-50%);
-    width: 14px; height: 20px;
+    width: 14px; 
+    height: 20px;
     background: radial-gradient(ellipse at center bottom, #ffcc00 0%, #ff6b00 45%, #ff2200 70%, transparent 80%);
     border-radius: 50% 50% 50% 50% / 65% 65% 35% 35%;
-    opacity: 0; pointer-events: none; z-index: 4;
+    opacity: 0; 
+    pointer-events: none; 
+    z-index: 4;
   }
-  .tube-flame.burn { opacity: 1; animation: flameFlicker 0.12s infinite; }
+  .tube-flame.burn { 
+    opacity: 1; 
+    animation: flameFlicker 0.12s infinite; 
+  }
   .tube-flame.burn-big {
-    opacity: 1; width: 34px; height: 56px;
+    opacity: 1; 
+    width: 34px; 
+    height: 56px;
     animation: flameFlickerBig 0.08s infinite;
   }
   @keyframes flameFlicker {
@@ -229,81 +427,144 @@
     50% { transform: translateX(-50%) scaleY(1.2) scaleX(1.08); }
   }
   .tube-extinguish {
-    position: absolute; bottom: 120px; left: 50%;
-    transform: translateX(-50%); font-size: 0.65rem;
-    color: #ccc; opacity: 0; pointer-events: none; white-space: nowrap;
+    position: absolute; 
+    bottom: 120px; 
+    left: 50%;
+    transform: translateX(-50%); 
+    font-size: 0.65rem;
+    color: #ccc; 
+    opacity: 0; 
+    pointer-events: none; 
+    white-space: nowrap;
   }
-  .tube-extinguish.show { animation: fadeInOut 1.2s ease-in-out; }
+  .tube-extinguish.show { 
+    animation: fadeInOut 1.2s ease-in-out; 
+  }
   @keyframes fadeInOut {
-    0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; }
+    0% { opacity: 0; } 
+    20% { opacity: 1; } 
+    80% { opacity: 1; } 
+    100% { opacity: 0; }
   }
   .testtube-label {
-    margin-top: 6px; font-size: 0.6rem; color: var(--muted); text-align: center;
+    margin-top: 6px; 
+    font-size: 0.6rem; 
+    color: var(--muted); 
+    text-align: center;
   }
-
-  .info { margin-top: 10px; text-align: center; }
-  .label { font-weight: 700; font-size: 0.9rem; min-height: 1.6em; }
-  .ph { margin-top: 2px; font-size: 0.7rem; color: var(--muted); min-height: 1.4em; }
-  .recipe { margin-top: 6px; font-size: 0.7rem; color: var(--muted); min-height: 2em; }
-  .gas-produced { margin-top: 3px; font-size: 0.75rem; color: #4ade80; font-weight: 600; }
-  .reaction {
-    margin-top: 6px; font-size: 0.65rem; color: var(--accent);
-    min-height: 2em; font-weight: 600;
-    background: rgba(91, 155, 213, 0.12); padding: 4px; border-radius: 8px;
-  }
-  .smell { margin-top: 3px; font-size: 0.7rem; color: #fbbf24; }
 
   .panel {
-    background: var(--panel); border: 1px solid var(--line);
-    border-radius: 12px; padding: 12px; margin-bottom: 12px;
+    background: var(--panel); 
+    border: 1px solid var(--line);
+    border-radius: 12px; 
+    padding: 12px; 
+    margin-bottom: 12px;
   }
   .panel h2 {
-    font-size: 0.85rem; color: var(--muted); margin-bottom: 8px;
-    letter-spacing: 0.05em; font-weight: 700;
+    font-size: 0.85rem; 
+    color: var(--muted); 
+    margin-bottom: 8px;
+    letter-spacing: 0.05em; 
+    font-weight: 700;
   }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 6px; 
+  }
   .grid.single { grid-template-columns: 1fr; }
   .grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  
   button {
-    font-family: inherit; font-size: 0.82rem; cursor: pointer;
-    border: 1px solid var(--line); background: var(--shelf);
-    color: var(--ink); border-radius: 8px; padding: 7px 5px;
-    transition: all 0.15s ease; font-weight: 600;
+    font-family: inherit; 
+    font-size: 0.82rem; 
+    cursor: pointer;
+    border: 1px solid var(--line); 
+    background: var(--shelf);
+    color: var(--ink); 
+    border-radius: 8px; 
+    padding: 7px 5px;
+    transition: all 0.15s ease; 
+    font-weight: 600;
   }
   button:hover { border-color: var(--accent); }
-  button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  button:disabled { opacity: 0.4; cursor: not-allowed; }
-  .checkbox-btn {
-    display: flex; align-items: center; gap: 5px;
-    justify-content: flex-start; font-size: 0.8rem; color: var(--ink);
+  button.active { 
+    background: var(--accent); 
+    color: var(--accent-ink); 
+    border-color: var(--accent); 
   }
-  .checkbox-btn input { width: 13px; height: 13px; cursor: pointer; flex-shrink: 0; }
+  button:disabled { 
+    opacity: 0.4; 
+    cursor: not-allowed; 
+  }
+  
+  .checkbox-btn {
+    display: flex; 
+    align-items: center; 
+    gap: 5px;
+    justify-content: flex-start; 
+    font-size: 0.8rem; 
+    color: var(--ink);
+  }
+  .checkbox-btn input { 
+    width: 13px; 
+    height: 13px; 
+    cursor: pointer; 
+    flex-shrink: 0; 
+  }
 
   .collect-btn {
-    width: 100%; background: #2563eb; color: #fff;
-    padding: 8px; margin-top: 10px; border-color: #1d4ed8; font-size: 0.85rem;
+    width: 100%; 
+    background: #2563eb; 
+    color: #fff;
+    padding: 8px; 
+    margin-top: 10px; 
+    border-color: #1d4ed8; 
+    font-size: 0.85rem;
   }
   .collect-btn:hover { background: #1d4ed8; }
   .collect-btn:disabled { background: #555; }
 
   .tube-actions {
-    display: flex; gap: 8px; margin-top: 10px;
+    display: flex; 
+    gap: 8px; 
+    margin-top: 10px;
   }
   .tube-actions button {
-    flex: 1; font-size: 0.78rem; padding: 8px 4px;
+    flex: 1; 
+    font-size: 0.78rem; 
+    padding: 8px 4px;
   }
-  .match-btn { background: #f59e0b; color: #fff; border-color: #d97706; }
+  .match-btn { 
+    background: #f59e0b; 
+    color: #fff; 
+    border-color: #d97706; 
+  }
   .match-btn:hover { background: #d97706; }
-  .limewater-btn { background: #16a34a; color: #fff; border-color: #15803d; }
+  .limewater-btn { 
+    background: #16a34a; 
+    color: #fff; 
+    border-color: #15803d; 
+  }
   .limewater-btn:hover { background: #15803d; }
 
   .reset {
-    width: 100%; background: transparent; border: 1px dashed var(--line);
-    color: var(--muted); padding: 6px; margin-top: 10px; font-size: 0.8rem;
+    width: 100%; 
+    background: transparent; 
+    border: 1px dashed var(--line);
+    color: var(--muted); 
+    padding: 6px; 
+    margin-top: 10px; 
+    font-size: 0.8rem;
   }
   .hint {
-    margin-top: 10px; font-size: 0.7rem; color: var(--muted);
-    background: var(--shelf); border-radius: 8px; padding: 6px 8px; line-height: 1.4;
+    margin-top: 10px; 
+    font-size: 0.7rem; 
+    color: var(--muted);
+    background: var(--shelf); 
+    border-radius: 8px; 
+    padding: 6px 8px; 
+    line-height: 1.4;
   }
 </style>
 </head>
@@ -318,15 +579,41 @@
 
 <div class="beaker-section">
   <div class="apparatus-row">
-    <!-- ビーカー（反応元） -->
+    <!-- ビーカー -->
     <div class="beaker-area">
       <div class="beaker" id="beaker">
         <div class="liquid" id="liquid">
           <div class="solids-display" id="solidsDisplay"></div>
+          <div class="crystals-display" id="crystalsDisplay"></div>
           <div class="bubbles" id="bubbles"></div>
         </div>
       </div>
+      <div class="explosion" id="explosion"></div>
       <div class="paper" id="paper"></div>
+      <div class="alcohol-lamp-area" id="lampArea" onclick="toggleHeating()">
+        <svg class="lamp-svg" viewBox="0 0 56 56">
+          <!-- 炎 -->
+          <g class="lamp-flame-svg" id="lampFlame">
+            <ellipse cx="28" cy="13" rx="5" ry="10" fill="#ff8c00"/>
+            <ellipse cx="28" cy="15" rx="3" ry="7" fill="#ffd54a"/>
+            <ellipse cx="28" cy="17" rx="1.5" ry="4" fill="#fff3c0"/>
+          </g>
+          <!-- 芯（しん） -->
+          <rect x="26" y="20" width="4" height="6" rx="1" fill="#5a4632"/>
+          <!-- 口金（首の金具） -->
+          <path d="M22 26 L34 26 L33 30 L23 30 Z" fill="#9aa3b2"/>
+          <rect x="22" y="25" width="12" height="2" rx="1" fill="#b8c0cc"/>
+          <!-- ガラス容器（本体） -->
+          <path d="M18 32 Q18 30 23 30 L33 30 Q38 30 38 34 L40 46 Q40 50 36 50 L20 50 Q16 50 16 46 Z" 
+                fill="rgba(150,200,230,0.25)" stroke="rgba(180,210,235,0.5)" stroke-width="1.5"/>
+          <!-- アルコール液 -->
+          <path d="M18 40 L38 40 L39.5 46 Q39.5 49 36 49 L20 49 Q16.5 49 16.5 46 Z" 
+                fill="rgba(120,180,220,0.3)"/>
+          <!-- ハイライト -->
+          <ellipse cx="23" cy="38" rx="2" ry="6" fill="rgba(255,255,255,0.25)"/>
+        </svg>
+        <div class="lamp-tag" id="lampTag">アルコールランプ</div>
+      </div>
     </div>
 
     <!-- ガラス管 -->
@@ -334,7 +621,7 @@
       <div class="flow"></div>
     </div>
 
-    <!-- 試験管（確認用） -->
+    <!-- 試験管 -->
     <div class="testtube-area" id="testtubeArea">
       <div class="testtube-cap"></div>
       <div class="testtube" id="testtube">
@@ -342,7 +629,7 @@
         <div class="limewater-fill" id="limewaterFill"></div>
       </div>
       <div class="tube-flame" id="tubeFlame"></div>
-      <div class="explosion" id="explosion"></div>
+      <div class="explosion" id="tubeExplosion"></div>
       <div class="tube-extinguish" id="tubeExtinguish">シュー…</div>
       <div class="testtube-label" id="testtubeLabel">気体なし</div>
     </div>
@@ -370,13 +657,12 @@
 
   <button class="collect-btn" id="collectBtn" onclick="collectGas()" disabled>発生した気体を試験管に集める</button>
 
-  <div class="panel">
+  <div class="panel" id="tubeActionsPanel" style="display:none;">
     <h2>③ 試験管の気体を調べる</h2>
-    <div class="tube-actions" id="tubeActions" style="display:none;">
+    <div class="tube-actions" id="tubeActions">
       <button class="match-btn" onclick="testCombustion()">マッチで火をつける</button>
       <button class="limewater-btn" onclick="testLimewater()">石灰水に通す</button>
     </div>
-    <p id="tubeHint" style="font-size:0.7rem;color:var(--muted);margin:0;">気体が発生したら、上のボタンで集めてね。</p>
   </div>
 
   <div class="panel">
@@ -413,18 +699,18 @@
   };
 
   const SOLIDS = {
-    "食塩": { property: "neutral", svg: "salt", soluble: true },
-    "砂糖": { property: "neutral", svg: "sugar", soluble: true },
-    "石灰石": { property: "acid_react", svg: "limestone", soluble: false },
-    "水酸化カルシウム": { property: "base", svg: "calcium_hydroxide", soluble: true },
-    "水酸化ナトリウム": { property: "base", svg: "sodium_hydroxide", soluble: true },
-    "二酸化マンガン": { property: "neutral", svg: "manganese_dioxide", soluble: false },
-    "鉄": { property: "acid_react", svg: "iron", soluble: false },
-    "アルミニウム": { property: "acid_react", svg: "aluminum", soluble: false },
-    "炭素": { property: "neutral", svg: "carbon", soluble: false },
-    "銅": { property: "neutral", svg: "copper", soluble: false },
-    "酸化銅": { property: "neutral", svg: "copper_oxide", soluble: false },
-    "硫黄": { property: "neutral", svg: "sulfur", soluble: false }
+    "食塩": { property: "neutral", svg: "salt", soluble: true, heatBehavior: "crystallize" },
+    "砂糖": { property: "neutral", svg: "sugar", soluble: true, heatBehavior: "burn" },
+    "石灰石": { property: "acid_react", svg: "limestone", soluble: false, heatBehavior: "none" },
+    "水酸化カルシウム": { property: "base", svg: "calcium_hydroxide", soluble: true, heatBehavior: "none" },
+    "水酸化ナトリウム": { property: "base", svg: "sodium_hydroxide", soluble: true, heatBehavior: "none" },
+    "二酸化マンガン": { property: "neutral", svg: "manganese_dioxide", soluble: false, heatBehavior: "none" },
+    "鉄": { property: "acid_react", svg: "iron", soluble: false, heatBehavior: "none" },
+    "アルミニウム": { property: "acid_react", svg: "aluminum", soluble: false, heatBehavior: "none" },
+    "炭素": { property: "neutral", svg: "carbon", soluble: false, heatBehavior: "none" },
+    "銅": { property: "neutral", svg: "copper", soluble: false, heatBehavior: "none" },
+    "酸化銅": { property: "neutral", svg: "copper_oxide", soluble: false, heatBehavior: "none" },
+    "硫黄": { property: "neutral", svg: "sulfur", soluble: false, heatBehavior: "none" }
   };
 
   const GASES = {
@@ -457,27 +743,21 @@
     "希硫酸+アルミニウム": { formula: "3H₂SO₄ + 2Al → Al₂(SO₄)₃ + 3H₂↑", bubbles: true, gas: "水素（H₂）", gasKey: "水素", smell: "", combustible: "hydrogen" },
     "お酢+鉄": { formula: "2CH₃COOH + Fe → (CH₃COO)₂Fe + H₂↑", bubbles: true, gas: "水素（H₂）", gasKey: "水素", smell: "すっぱいにおい", combustible: "hydrogen" },
     "お酢+アルミニウム": { formula: "6CH₃COOH + 2Al → 2(CH₃COO)₃Al + 3H₂↑", bubbles: true, gas: "水素（H₂）", gasKey: "水素", smell: "すっぱいにおい", combustible: "hydrogen" },
-
     "水酸化ナトリウム水溶液+アルミニウム": { formula: "2Al + 2NaOH + 2H₂O → 2NaAlO₂ + 3H₂↑", bubbles: true, gas: "水素（H₂）", gasKey: "水素", smell: "", combustible: "hydrogen" },
-
     "希塩酸+石灰石": { formula: "2HCl + CaCO₃ → CaCl₂ + H₂O + CO₂↑", bubbles: true, gas: "二酸化炭素（CO₂）", gasKey: "二酸化炭素", smell: "", combustible: "co2" },
     "希硫酸+石灰石": { formula: "H₂SO₄ + CaCO₃ → CaSO₄ + H₂O + CO₂↑", bubbles: true, gas: "二酸化炭素（CO₂）", gasKey: "二酸化炭素", smell: "", combustible: "co2" },
     "お酢+石灰石": { formula: "2CH₃COOH + CaCO₃ → (CH₃COO)₂Ca + H₂O + CO₂↑", bubbles: true, gas: "二酸化炭素（CO₂）", gasKey: "二酸化炭素", smell: "すっぱいにおい", combustible: "co2" },
-
     "希塩酸+水酸化ナトリウム": { formula: "HCl + NaOH → NaCl + H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
     "希塩酸+水酸化カルシウム": { formula: "2HCl + Ca(OH)₂ → CaCl₂ + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
     "希硫酸+水酸化ナトリウム": { formula: "H₂SO₄ + 2NaOH → Na₂SO₄ + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
     "希硫酸+水酸化カルシウム": { formula: "H₂SO₄ + Ca(OH)₂ → CaSO₄ + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
     "お酢+水酸化ナトリウム": { formula: "CH₃COOH + NaOH → CH₃COONa + H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
     "お酢+水酸化カルシウム": { formula: "2CH₃COOH + Ca(OH)₂ → (CH₃COO)₂Ca + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
-
     "過酸化水素水+二酸化マンガン": { formula: "2H₂O₂ → 2H₂O + O₂↑（MnO₂は触媒）", bubbles: true, gas: "酸素（O₂）", gasKey: "酸素", smell: "", combustible: "oxygen" },
-
     "水+食塩": { formula: "NaCl → 水にとける（化学反応ではなく溶解）", bubbles: false, gas: "", smell: "", combustible: "none" },
     "水+砂糖": { formula: "砂糖 → 水にとける（化学反応ではなく溶解）", bubbles: false, gas: "", smell: "", combustible: "none" },
     "水+水酸化ナトリウム": { formula: "NaOH → 水にとけてアルカリ性に（熱が出る）", bubbles: false, gas: "", smell: "", combustible: "none" },
     "水+水酸化カルシウム": { formula: "Ca(OH)₂ → 少し水にとけて石灰水になる", bubbles: false, gas: "", smell: "", combustible: "none" },
-
     "塩化水素": { formula: "HCl（気体）→ 水にとけると塩酸（酸性）", bubbles: false, gas: "塩化水素（HCl）", gasKey: "塩化水素", smell: "つんとくるにおい", combustible: "none" },
     "アンモニア": { formula: "NH₃（気体）→ 水にとけるとアンモニア水（アルカリ性）", bubbles: false, gas: "アンモニア（NH₃）", gasKey: "アンモニア", smell: "つんとくるにおい（独特）", combustible: "none" },
     "二酸化炭素": { formula: "CO₂（気体）→ 水にとけると炭酸水（酸性）", bubbles: false, gas: "二酸化炭素（CO₂）", gasKey: "二酸化炭素", smell: "においはない", combustible: "co2" },
@@ -489,10 +769,15 @@
   let selectedSolids = new Set();
   let selectedIndicator = null;
   let beakerBroken = false;
-  let collectedGas = null; // 試験管に集めた気体のキー
+  let collectedGas = null;
+  let isHeating = false;
+  let heatTimer = null;
+  let liquidHeight = 58;
+  let burnedSolids = new Set(); // 焦げた砂糖など
 
   const liquidEl = document.getElementById('liquid');
   const solidsDisplayEl = document.getElementById('solidsDisplay');
+  const crystalsDisplayEl = document.getElementById('crystalsDisplay');
   const bubblesEl = document.getElementById('bubbles');
   const paperEl = document.getElementById('paper');
   const labelEl = document.getElementById('label');
@@ -513,8 +798,11 @@
   const tubeExtinguishEl = document.getElementById('tubeExtinguish');
   const testtubeLabelEl = document.getElementById('testtubeLabel');
   const tubeActions = document.getElementById('tubeActions');
-  const tubeHint = document.getElementById('tubeHint');
   const testtubeEl = document.getElementById('testtube');
+  const tubeExplosionEl = document.getElementById('tubeExplosion');
+  const lampArea = document.getElementById('lampArea');
+  const lampFlame = document.getElementById('lampFlame');
+  const lampTag = document.getElementById('lampTag');
 
   Object.keys(LIQUIDS).forEach(name => {
     const b = document.createElement('button');
@@ -546,6 +834,7 @@
   function selectLiquid(name, btn) {
     currentLiquid = name;
     beakerBroken = false;
+    stopHeating();
     document.querySelectorAll('#liquids button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     selectedIndicator = null;
@@ -554,6 +843,7 @@
     beakerEl.classList.remove('broken');
     render();
   }
+  
   function toggleSolid(name, checked) {
     if (checked) selectedSolids.add(name);
     else selectedSolids.delete(name);
@@ -562,6 +852,7 @@
     paperEl.classList.remove('show');
     render();
   }
+
   function selectIndicator(name, btn) {
     if (!currentLiquid || beakerBroken) {
       hintEl.textContent = "先に液体をえらんでね。";
@@ -629,14 +920,103 @@
     return "neutral";
   }
 
-  // 現在発生中の気体キーを取得（試験管に集められる気体）
   function getCurrentGasKey() {
     const reaction = findReaction();
     if (reaction && reaction.gasKey) return reaction.gasKey;
     return null;
   }
 
-  // ===== 気体を試験管に集める =====
+  // ===== 加熱機能 =====
+  function toggleHeating() {
+    if (!currentLiquid) {
+      hintEl.textContent = "先に液体をえらんでね。";
+      return;
+    }
+    if (isHeating) {
+      stopHeating();
+    } else {
+      startHeating();
+    }
+  }
+
+  function startHeating() {
+    isHeating = true;
+    lampArea.classList.add('on');
+    lampFlame.classList.add('active');
+    lampTag.textContent = "加熱中…";
+    liquidHeight = 58;
+    heatTimer = setInterval(() => {
+      liquidHeight -= 2;
+      if (liquidHeight <= 0) {
+        completeHeating();
+      } else {
+        liquidEl.style.height = liquidHeight + '%';
+      }
+    }, 150);
+  }
+
+  function stopHeating() {
+    if (heatTimer) clearInterval(heatTimer);
+    isHeating = false;
+    lampArea.classList.remove('on');
+    lampFlame.classList.remove('active');
+    lampTag.textContent = "アルコールランプ";
+  }
+
+  function completeHeating() {
+    stopHeating();
+    // 加熱完了：蒸発した固体が結晶化
+    const dissolved = [];
+    selectedSolids.forEach(solid => {
+      if (SOLIDS[solid].soluble && currentLiquid) dissolved.push(solid);
+    });
+
+    // 固体ごとの挙動
+    dissolved.forEach((solid, idx) => {
+      const behavior = SOLIDS[solid].heatBehavior;
+      if (behavior === "crystallize") {
+        // 結晶化
+        createCrystals(solid, idx);
+      } else if (behavior === "burn") {
+        // 焦げる
+        burnedSolids.add(solid);
+        hintEl.textContent = "砂糖が焦げました！カラメル化が起こりました。";
+      }
+    });
+
+    if (dissolved.length > 0) {
+      hintEl.textContent = "液体が蒸発しました。加熱を停止しています。";
+      liquidEl.style.height = '0%';
+    }
+  }
+
+  function createCrystals(solidName, delay) {
+    const solid = SOLIDS[solidName];
+    const numCrystals = 6 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < numCrystals; i++) {
+      const crystal = document.createElement('div');
+      crystal.className = 'crystal';
+      crystal.style.animationDelay = (delay * 0.2 + i * 0.15) + 's';
+      
+      // SVG を大きく表示
+      const svg = SVG[solid.svg];
+      crystal.innerHTML = svg;
+      
+      // 白い背景を追加（結晶が目立つように）
+      const bgDiv = document.createElement('div');
+      bgDiv.style.position = 'absolute';
+      bgDiv.style.inset = '-2px';
+      bgDiv.style.background = 'rgba(255,255,255,0.08)';
+      bgDiv.style.borderRadius = '4px';
+      bgDiv.style.zIndex = '-1';
+      
+      crystal.style.position = 'relative';
+      crystal.appendChild(bgDiv);
+      
+      crystalsDisplayEl.appendChild(crystal);
+    }
+  }
+
   function collectGas() {
     const gasKey = getCurrentGasKey();
     if (!gasKey) return;
@@ -651,12 +1031,10 @@
       testtubeArea.classList.add('has-gas');
       testtubeLabelEl.textContent = gasKey + " を集めた";
       tubeActions.style.display = 'flex';
-      tubeHint.style.display = 'none';
       hintEl.textContent = "試験管に" + gasKey + "を集めた。マッチで火をつけるか、石灰水に通してみよう。";
     }, 900);
   }
 
-  // ===== マッチで試験管の気体をテスト =====
   function testCombustion() {
     if (!collectedGas) return;
     const data = GASES[collectedGas];
@@ -664,13 +1042,13 @@
 
     tubeFlameEl.classList.remove('burn', 'burn-big');
     tubeExtinguishEl.classList.remove('show');
-    explosionEl.classList.remove('active');
+    tubeExplosionEl.classList.remove('active');
 
     if (combustible === "hydrogen") {
       tubeFlameEl.classList.add('burn');
       setTimeout(() => {
         tubeFlameEl.classList.remove('burn');
-        explosionEl.classList.add('active');
+        tubeExplosionEl.classList.add('active');
         testtubeEl.classList.add('broken');
         gasFillEl.classList.remove('filled');
         testtubeLabelEl.textContent = "ポン！と爆発した";
@@ -704,7 +1082,6 @@
     }
   }
 
-  // ===== 石灰水に通す =====
   function testLimewater() {
     if (!collectedGas) return;
     limewaterFillEl.classList.add('show');
@@ -727,12 +1104,11 @@
     limewaterFillEl.classList.remove('show', 'cloudy');
     tubeFlameEl.classList.remove('burn', 'burn-big');
     tubeExtinguishEl.classList.remove('show');
-    explosionEl.classList.remove('active');
+    tubeExplosionEl.classList.remove('active');
     testtubeEl.classList.remove('broken');
     testtubeArea.classList.remove('has-gas');
     testtubeLabelEl.textContent = "気体なし";
     tubeActions.style.display = 'none';
-    tubeHint.style.display = 'block';
   }
 
   function render() {
@@ -741,12 +1117,17 @@
     if (!currentLiquid) {
       liquidEl.classList.remove('filled', 'cloudy');
       liquidEl.style.background = "rgba(220, 235, 245, 0.12)";
+      liquidEl.style.height = '0%';
       updateSolidsDisplay();
+      crystalsDisplayEl.innerHTML = '';
       updateBubbles(false);
       paperEl.classList.remove('show');
       labelEl.textContent = "ビーカーが空です";
-      phEl.textContent = ""; recipeEl.textContent = "";
-      gasProdEl.textContent = ""; reactionEl.textContent = ""; smellEl.textContent = "";
+      phEl.textContent = ""; 
+      recipeEl.textContent = "";
+      gasProdEl.textContent = ""; 
+      reactionEl.textContent = ""; 
+      smellEl.textContent = "";
       collectBtn.disabled = true;
       hintEl.textContent = "まず液体をえらんでね。";
       return;
@@ -756,6 +1137,7 @@
     const reaction = findReaction();
     liquidEl.classList.add('filled');
     liquidEl.classList.remove('cloudy');
+    liquidEl.style.height = liquidHeight + '%';
 
     labelEl.textContent = isLimewater() ? "石灰水（水＋水酸化カルシウム）" : currentLiquid;
 
@@ -791,7 +1173,7 @@
     if (!selectedIndicator) {
       liquidEl.style.background = "rgba(220, 235, 245, 0.12)";
       paperEl.classList.remove('show');
-      hintEl.textContent = gasKey ? "気体を試験管に集めて調べてみよう。" : "指示薬で色を見てみよう。";
+      hintEl.textContent = gasKey ? "気体を試験管に集めるか、加熱して蒸発させてみよう。" : "指示薬で色を見てみよう。";
       return;
     }
 
@@ -813,18 +1195,26 @@
     selectedSolids.clear();
     selectedIndicator = null;
     beakerBroken = false;
+    burnedSolids.clear();
+    liquidHeight = 58;
+    stopHeating();
     document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
     document.querySelectorAll('#liquids button, #indicators button').forEach(b => b.classList.remove('active'));
     liquidEl.classList.remove('filled', 'cloudy');
     liquidEl.style.background = "rgba(220, 235, 245, 0.12)";
+    liquidEl.style.height = '0%';
     updateSolidsDisplay();
+    crystalsDisplayEl.innerHTML = '';
     updateBubbles(false);
     beakerEl.classList.remove('broken');
     paperEl.classList.remove('show');
     resetTestTube();
     labelEl.textContent = "ビーカーが空です";
-    phEl.textContent = ""; recipeEl.textContent = "";
-    gasProdEl.textContent = ""; reactionEl.textContent = ""; smellEl.textContent = "";
+    phEl.textContent = ""; 
+    recipeEl.textContent = "";
+    gasProdEl.textContent = ""; 
+    reactionEl.textContent = ""; 
+    smellEl.textContent = "";
     collectBtn.disabled = true;
     hintEl.textContent = "まず液体をえらんでね。";
   };

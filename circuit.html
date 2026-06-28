@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>回路ラボ｜電池と豆電球</title>
+<style>
+  :root{
+    --bg: #14181c;
+    --panel: #1d2329;
+    --panel-edge: #2a323a;
+    --grid-dot: #3a4450;
+    --wire: #6b7785;
+    --wire-live: #ffb454;
+    --copper: #ffb454;
+    --copper-dim: #8a6a3a;
+    --ice: #6fd3ff;
+    --text: #e8edf2;
+    --text-dim: #8b97a3;
+    --danger: #ff6b6b;
+    --good: #5ee6a0;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; background:var(--bg); color:var(--text);
+    font-family:"Yu Gothic","Hiragino Sans","Noto Sans JP",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .topbar{
+    display:flex; align-items:center; gap:14px;
+    padding:14px 18px; background:var(--panel);
+    border-bottom:1px solid var(--panel-edge);
+    position:sticky; top:0; z-index:20;
+  }
+  .back-btn{
+    display:flex; align-items:center; gap:6px;
+    background:transparent; color:var(--text-dim);
+    border:1px solid var(--panel-edge); border-radius:8px;
+    padding:8px 12px; font-size:13px; cursor:pointer;
+    transition:.15s ease;
+    text-decoration:none;
+  }
+  .back-btn:hover{ color:var(--text); border-color:var(--ice); }
+  .title-block{ display:flex; flex-direction:column; line-height:1.2; }
+  .title-block .label{ font-size:11px; letter-spacing:.12em; color:var(--copper); font-weight:600; }
+  .title-block h1{ margin:0; font-size:18px; font-weight:700; letter-spacing:.01em; }
+  .spacer{ flex:1; }
+  .unit-badge{
+    font-size:11px; color:var(--text-dim); border:1px solid var(--panel-edge);
+    border-radius:999px; padding:4px 10px; white-space:nowrap;
+  }
+
+  .layout{
+    display:grid;
+    grid-template-columns: 1fr;
+    gap:16px;
+    max-width:1100px;
+    margin:0 auto;
+    padding:16px;
+  }
+  @media(min-width:880px){
+    .layout{ grid-template-columns: 1fr 280px; align-items:start; }
+  }
+
+  .board-card{
+    background:var(--panel); border:1px solid var(--panel-edge);
+    border-radius:16px; padding:14px; position:relative;
+  }
+
+  .toolbar{
+    display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;
+  }
+  .tool-btn{
+    display:flex; align-items:center; gap:8px;
+    background:#161a1e; color:var(--text-dim);
+    border:1px solid var(--panel-edge); border-radius:10px;
+    padding:9px 13px; font-size:13px; cursor:pointer;
+    transition:.12s ease;
+  }
+  .tool-btn svg{ width:18px; height:18px; flex:none; }
+  .tool-btn:hover{ color:var(--text); border-color:#3a4450; }
+  .tool-btn.active{
+    color:#16110a; background:var(--copper); border-color:var(--copper);
+    font-weight:700;
+  }
+  .tool-btn.danger.active{ background:var(--danger); border-color:var(--danger); color:#1a0a0a; }
+  .tool-divider{ width:1px; background:var(--panel-edge); margin:4px 4px; }
+
+  canvas{
+    width:100%; display:block; touch-action:none;
+    background:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.0) 0, transparent 0),
+      #11151a;
+    border-radius:12px;
+    cursor:crosshair;
+  }
+
+  .hint{
+    margin-top:10px; font-size:12.5px; color:var(--text-dim); line-height:1.6;
+  }
+  .hint b{ color:var(--text); }
+
+  .side{
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .card{
+    background:var(--panel); border:1px solid var(--panel-edge);
+    border-radius:16px; padding:16px;
+  }
+  .card h2{
+    margin:0 0 10px 0; font-size:13px; letter-spacing:.08em;
+    color:var(--text-dim); font-weight:700; text-transform:uppercase;
+  }
+  .readout-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:7px 0; border-bottom:1px dashed var(--panel-edge);
+  }
+  .readout-row:last-child{ border-bottom:none; }
+  .readout-row .k{ font-size:13px; color:var(--text-dim); }
+  .readout-row .v{ font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .v.amber{ color:var(--copper); }
+  .v.ice{ color:var(--ice); }
+
+  .slider-row{ margin-top:6px; }
+  .slider-row label{ display:flex; justify-content:space-between; font-size:13px; color:var(--text-dim); margin-bottom:6px; }
+  .slider-row label span{ color:var(--copper); font-weight:700; }
+  input[type=range]{
+    width:100%; -webkit-appearance:none; height:4px; border-radius:2px;
+    background:var(--panel-edge); outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background:var(--copper); cursor:pointer; border:2px solid #1a1a1a;
+  }
+
+  .status{
+    font-size:13px; border-radius:10px; padding:10px 12px; line-height:1.5;
+  }
+  .status.ok{ background:rgba(94,230,160,0.08); color:var(--good); border:1px solid rgba(94,230,160,0.25); }
+  .status.warn{ background:rgba(255,107,107,0.08); color:var(--danger); border:1px solid rgba(255,107,107,0.25); }
+  .status.idle{ background:rgba(139,151,163,0.08); color:var(--text-dim); border:1px solid var(--panel-edge); }
+
+  .bulb-list{ display:flex; flex-direction:column; gap:8px; font-size:13px; }
+  .bulb-row{ display:flex; justify-content:space-between; align-items:center; }
+  .bulb-row .dot{ width:9px; height:9px; border-radius:50%; margin-right:8px; display:inline-block; }
+  .bulb-row .name{ display:flex; align-items:center; color:var(--text-dim); }
+  .bulb-row .amt{ font-variant-numeric:tabular-nums; font-weight:700; }
+
+  .reset-btn{
+    width:100%; padding:10px; border-radius:10px; border:1px solid var(--panel-edge);
+    background:#161a1e; color:var(--text-dim); font-size:13px; cursor:pointer;
+    transition:.12s ease;
+  }
+  .reset-btn:hover{ color:var(--danger); border-color:var(--danger); }
+
+  footer{
+    text-align:center; color:var(--text-dim); font-size:11.5px; padding:24px 16px 32px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    物理メニュー
+  </a>
+  <div class="title-block">
+    <div class="label">PHYSICS SANDBOX</div>
+    <h1>回路ラボ — 電池と豆電球</h1>
+  </div>
+  <div class="spacer"></div>
+  <div class="unit-badge">直列・並列を自由に組める</div>
+</div>
+
+<div class="layout">
+
+  <div class="board-card">
+    <div class="toolbar">
+      <button class="tool-btn active" data-tool="wire">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12h18"/></svg>
+        配線
+      </button>
+      <button class="tool-btn" data-tool="battery">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 12h5M9 6v12M9 12h2M15 8v8M15 12h6"/></svg>
+        電池
+      </button>
+      <button class="tool-btn" data-tool="bulb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="7"/><path d="M9 9l6 6M15 9l-6 6"/></svg>
+        豆電球
+      </button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn danger" data-tool="erase">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 19h14M7 19l1-12h8l1 12M10 7V5h4v2"/></svg>
+        消去
+      </button>
+      <div style="flex:1;"></div>
+      <button class="tool-btn danger" id="clearAllBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/><path d="M10 11v6M14 11v6"/></svg>
+        全消去
+      </button>
+    </div>
+
+    <canvas id="board"></canvas>
+
+    <div class="hint">
+      格子の<b>線（マス目の間）をクリック／タップ</b>すると、選んだ部品が置かれます。<br>
+      電池→豆電球→配線とつないで輪を作ると電流が流れます。電池を<b>直列に増やすほど明るく</b>なります。<b>直列</b>は一本道に、<b>並列</b>は道を分けてつないでみよう。
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="card">
+      <h2>電源</h2>
+      <p style="margin:0; font-size:13px; color:var(--text-dim); line-height:1.6;">
+        電池1個 = <b style="color:var(--text)">1.5V</b>。電圧はスライダーではなく、<b style="color:var(--text)">置いた電池の数</b>で決まります。
+        直列につなぐほど電圧が足し算され、明るくなります。
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>回路の状態</h2>
+      <div id="statusBox" class="status idle">部品を置いて回路を作ってみよう。</div>
+      <div style="margin-top:10px;">
+        <div class="readout-row"><span class="k">設置した電池</span><span class="v ice" id="battCountOut">0 個</span></div>
+        <div class="readout-row"><span class="k">もっとも強い電流</span><span class="v amber" id="maxCurrentOut">—</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>電池の状態（消耗）</h2>
+      <div class="bulb-list" id="battList">
+        <div class="bulb-row"><span class="name" style="color:var(--text-dim)">まだ電池がありません</span></div>
+      </div>
+      <button class="reset-btn" id="rechargeBtn" style="margin-top:10px;">電池をすべて新品にする</button>
+    </div>
+
+    <div class="card">
+      <h2>豆電球ごとの明るさ</h2>
+      <p style="margin:0 0 8px 0; font-size:11.5px; color:var(--text-dim);">「電池1個＋電球1個」を基準（1倍）として比較</p>
+      <div class="bulb-list" id="bulbList">
+        <div class="bulb-row"><span class="name" style="color:var(--text-dim)">まだ豆電球がありません</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>ドラフト v0.1 — 直列・並列の自由配置 / 電流の速さでアニメーション表示</footer>
+
+<script>
+(function(){
+  // ---------- グリッド設定 ----------
+  const COLS = 7, ROWS = 5;          // ノード数
+  const CELL = 78;                    // 1マスのピクセルサイズ（論理座標）
+  const PAD  = 50;
+  const W = PAD*2 + CELL*(COLS-1);
+  const H = PAD*2 + CELL*(ROWS-1);
+
+  const canvas = document.getElementById('board');
+  const ctx = canvas.getContext('2d');
+  let DPR = window.devicePixelRatio || 1;
+
+  function resizeCanvas(){
+    DPR = window.devicePixelRatio || 1;
+    const displayW = canvas.clientWidth || W;
+    const scale = displayW / W;
+    canvas.width = Math.round(W*scale*DPR);
+    canvas.height = Math.round(H*scale*DPR);
+    canvas.style.height = Math.round(H*scale) + 'px';
+    ctx.setTransform(scale*DPR,0,0,scale*DPR,0,0);
+  }
+
+  function nodePos(c,r){ return {x: PAD + c*CELL, y: PAD + r*CELL}; }
+
+  // ---------- データモデル ----------
+  // edge key: "c1,r1-c2,r2" with the smaller coordinate first
+  function edgeKey(a,b){
+    const ka = a.c*100+a.r, kb = b.c*100+b.r;
+    return ka<kb ? `${a.c},${a.r}-${b.c},${b.r}` : `${b.c},${b.r}-${a.c},${a.r}`;
+  }
+
+  const edges = new Map(); // key -> {a:{c,r}, b:{c,r}, type, current, flipped}
+
+  // build all valid empty edges
+  for(let c=0;c<COLS;c++){
+    for(let r=0;r<ROWS;r++){
+      if(c<COLS-1){
+        const a={c,r}, b={c:c+1,r};
+        edges.set(edgeKey(a,b), {a,b,type:'empty',current:0});
+      }
+      if(r<ROWS-1){
+        const a={c,r}, b={c,r:r+1};
+        edges.set(edgeKey(a,b), {a,b,type:'empty',current:0});
+      }
+    }
+  }
+
+  const BULB_R = 5;       // Ω（固定値、ドラフト版）
+  const BATTERY_EMF = 1.5;  // V／個（乾電池1本分・フル充電時）
+  const BATTERY_R = 0.5;    // Ω 内部抵抗／個（短絡時の発火を防ぐため）
+  const WIRE_R = 0.0005;    // Ω（理想配線に近い極小値）
+
+  // ---------- 電池の消耗モデル ----------
+  const BASELINE_I = BATTERY_EMF / (BATTERY_R + BULB_R); // 電池1個+電球1個の基準電流
+  const BASELINE_T = 30; // 基準シナリオが満充電からほぼ使い切るまでの目安秒数
+  const Q_CAP = BASELINE_I * BASELINE_T; // 電池1個分の容量（電流×時間の単位）
+  const EMF_TAIL = 0.15;   // 残量がこの割合を切ると電圧が下がり始める
+  const DEAD_FRAC = 0.01;  // この割合を切ったら「使い切った」とみなす
+
+  function effectiveEMF(charge){
+    const frac = Math.max(0, charge/Q_CAP);
+    if(frac <= DEAD_FRAC) return 0;
+    if(frac >= EMF_TAIL) return BATTERY_EMF;
+    return BATTERY_EMF * (frac/EMF_TAIL);
+  }
+
+  let currentTool = 'wire';
+
+  // ---------- UI: ツールバー ----------
+  document.querySelectorAll('.tool-btn').forEach(btn=>{
+    if(!btn.dataset.tool) return; // 全消去ボタンなどツール以外はスキップ
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tool-btn').forEach(b=>{ if(b.dataset.tool) b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentTool = btn.dataset.tool;
+    });
+  });
+
+  function clearAll(){
+    for(const e of edges.values()){ e.type='empty'; e.current=0; e.flipped=false; delete e.charge; }
+    phase.clear();
+    solve();
+  }
+
+  document.getElementById('clearAllBtn').addEventListener('click', clearAll);
+
+  document.getElementById('rechargeBtn').addEventListener('click', ()=>{
+    for(const e of edges.values()){ if(e.type==='battery') e.charge = Q_CAP; }
+  });
+
+  // ---------- クリックでedgeを選んで部品配置 ----------
+  function getLogicalPoint(evt){
+    const rect = canvas.getBoundingClientRect();
+    const clientX = (evt.touches ? evt.touches[0].clientX : evt.clientX);
+    const clientY = (evt.touches ? evt.touches[0].clientY : evt.clientY);
+    const scale = W / rect.width;
+    return { x: (clientX-rect.left)*scale, y: (clientY-rect.top)*scale };
+  }
+
+  function nearestEdge(pt){
+    let best=null, bestDist=Infinity;
+    for(const [key,e] of edges){
+      const pa = nodePos(e.a.c,e.a.r), pb = nodePos(e.b.c,e.b.r);
+      const mx=(pa.x+pb.x)/2, my=(pa.y+pb.y)/2;
+      // distance to segment
+      const dx=pb.x-pa.x, dy=pb.y-pa.y;
+      const len2 = dx*dx+dy*dy;
+      let t = len2>0 ? ((pt.x-pa.x)*dx+(pt.y-pa.y)*dy)/len2 : 0;
+      t = Math.max(0,Math.min(1,t));
+      const px=pa.x+t*dx, py=pa.y+t*dy;
+      const d = Math.hypot(pt.x-px, pt.y-py);
+      if(d<bestDist){ bestDist=d; best=key; }
+    }
+    if(bestDist < 26) return best;
+    return null;
+  }
+
+  function handlePick(evt){
+    evt.preventDefault();
+    const pt = getLogicalPoint(evt);
+    const key = nearestEdge(pt);
+    if(!key) return;
+    const e = edges.get(key);
+
+    if(currentTool === 'erase'){
+      e.type='empty'; e.current=0; e.flipped=false; delete e.charge;
+    } else if(currentTool === 'battery'){
+      if(e.type==='battery'){
+        e.flipped = !e.flipped; // 同じ場所をもう一度押すと極性反転（残量はそのまま）
+      } else {
+        e.type='battery'; e.flipped=false; e.charge=Q_CAP;
+      }
+    } else if(currentTool === 'bulb'){
+      e.type='bulb';
+    } else if(currentTool === 'wire'){
+      e.type='wire';
+    }
+    solve();
+  }
+
+  canvas.addEventListener('mousedown', handlePick);
+  canvas.addEventListener('touchstart', handlePick, {passive:false});
+
+  // ---------- 回路解析（接点方程式 / Nodal Analysis） ----------
+  // すべての配線・豆電球・電池を「起電力Vsと抵抗Rを持つ枝」として扱い、
+  // 連立方程式を解いて各ノードの電位を求め、各枝の電流を逆算する。
+  // これにより、直列・並列はもちろん、電池を何個でも・どこに置いても、
+  // ブリッジ状の複雑な配線でも正しく解ける。
+  function nk(n){ return n.c+','+n.r; }
+
+  function solveLinearSystem(G, rhs){
+    const n = rhs.length;
+    if(n===0) return [];
+    const M = G.map((row,i)=>row.concat([rhs[i]]));
+    for(let col=0; col<n; col++){
+      let pivotRow = col, maxAbs = Math.abs(M[col][col]);
+      for(let r=col+1;r<n;r++){ if(Math.abs(M[r][col])>maxAbs){ maxAbs=Math.abs(M[r][col]); pivotRow=r; } }
+      if(maxAbs < 1e-12) continue; // 接続が無い等の縮退ケースはスキップ
+      if(pivotRow!==col){ const tmp=M[col]; M[col]=M[pivotRow]; M[pivotRow]=tmp; }
+      const pv = M[col][col];
+      for(let c=col;c<=n;c++) M[col][c]/=pv;
+      for(let r=0;r<n;r++){
+        if(r===col) continue;
+        const f = M[r][col];
+        if(f===0) continue;
+        for(let c=col;c<=n;c++) M[r][c]-=f*M[col][c];
+      }
+    }
+    return M.map(row=>row[n]);
+  }
+
+  function solve(){
+    // 1) 有効な枝（配線・豆電球・電池）を収集
+    const branches = [];
+    for(const [key,e] of edges){
+      if(e.type==='wire'){ branches.push({key,e,n1:nk(e.a),n2:nk(e.b),Vs:0,R:WIRE_R,isBattery:false}); }
+      else if(e.type==='bulb'){ branches.push({key,e,n1:nk(e.a),n2:nk(e.b),Vs:0,R:BULB_R,isBattery:false}); }
+      else if(e.type==='battery'){
+        if(e.charge===undefined) e.charge = Q_CAP;
+        const emfMag = effectiveEMF(e.charge);
+        const v = e.flipped ? -emfMag : emfMag;
+        branches.push({key,e,n1:nk(e.a),n2:nk(e.b),Vs:v,R:BATTERY_R,isBattery:true});
+      } else { e.current = 0; }
+    }
+
+    const batteryCount = branches.filter(b=>b.isBattery).length;
+
+    if(branches.length===0){
+      renderStatus('idle','部品を置いて回路を作ってみよう。');
+      updateSidePanel(0,0);
+      updateBulbList();
+      updateBattList();
+      return;
+    }
+
+    // 2) 連結成分ごとに分解（電池を含まない成分は電流0で確定）
+    const adj = new Map();
+    branches.forEach((b,i)=>{
+      if(!adj.has(b.n1)) adj.set(b.n1,[]);
+      if(!adj.has(b.n2)) adj.set(b.n2,[]);
+      adj.get(b.n1).push(i); adj.get(b.n2).push(i);
+    });
+    const visited = new Set();
+    const comps = [];
+    for(const start of adj.keys()){
+      if(visited.has(start)) continue;
+      const nodes=new Set([start]); const edgeIdx=new Set();
+      const queue=[start]; visited.add(start);
+      while(queue.length){
+        const cur=queue.pop();
+        for(const ei of adj.get(cur)){
+          edgeIdx.add(ei);
+          const b=branches[ei]; const other = b.n1===cur?b.n2:b.n1;
+          if(!visited.has(other)){ visited.add(other); nodes.add(other); queue.push(other); }
+        }
+      }
+      comps.push({nodes:[...nodes], edgeIdx:[...edgeIdx]});
+    }
+
+    let maxCurrent = 0;
+    let anyFlowing = false;
+    let shortDetected = false;
+    let reverseDetected = false;
+
+    // 基準電流の何倍を超えたら「ショート（短絡）」とみなすか
+    const SHORT_FACTOR = 3.0;
+
+    for(const comp of comps){
+      const hasBattery = comp.edgeIdx.some(ei=>branches[ei].isBattery);
+      if(!hasBattery){
+        for(const ei of comp.edgeIdx) branches[ei].e.current = 0;
+        continue;
+      }
+      const ground = comp.nodes[0];
+      const idx = new Map(); let c=0;
+      for(const nd of comp.nodes) if(nd!==ground) idx.set(nd,c++);
+      const size = c;
+      const G = Array.from({length:size},()=>new Array(size).fill(0));
+      const RHS = new Array(size).fill(0);
+
+      for(const ei of comp.edgeIdx){
+        const {n1,n2,Vs,R} = branches[ei];
+        const g = 1/R, Is = Vs*g;
+        const i1 = idx.has(n1)?idx.get(n1):-1, i2 = idx.has(n2)?idx.get(n2):-1;
+        if(i1>=0) G[i1][i1]+=g;
+        if(i2>=0) G[i2][i2]+=g;
+        if(i1>=0 && i2>=0){ G[i1][i2]-=g; G[i2][i1]-=g; }
+        if(i1>=0) RHS[i1]+=Is;
+        if(i2>=0) RHS[i2]-=Is;
+      }
+
+      const Vvec = solveLinearSystem(G,RHS);
+      const V = new Map(); V.set(ground,0);
+      for(const [nd,i] of idx) V.set(nd,Vvec[i]);
+
+      // この成分内の電池の起電力の様子を調べる（逆接続の判定用）
+      let posEMF = 0, negEMF = 0, liveBatteries = 0;
+      for(const ei of comp.edgeIdx){
+        const b = branches[ei];
+        const I = (V.get(b.n1)-V.get(b.n2)-b.Vs)/b.R;
+        b.e.current = I;
+        if(Math.abs(I)>maxCurrent) maxCurrent = Math.abs(I);
+        if(Math.abs(I)>0.01) anyFlowing = true;
+
+        if(b.isBattery){
+          // 電池の端子電圧の符号と、電流の向きが逆＝充電方向に押し戻されている＝逆接続気味
+          if(Math.abs(b.Vs) > 0.01){
+            liveBatteries++;
+            if(b.Vs > 0) posEMF += b.Vs; else negEMF += -b.Vs;
+          }
+        } else {
+          // 抵抗ゼロに近い枝（配線）に大電流＝ショート
+          if(b.R < 0.01 && Math.abs(I) > BASELINE_I*SHORT_FACTOR){
+            shortDetected = true;
+          }
+        }
+      }
+
+      // 同じ輪に「順向き」と「逆向き」の電池が混在＝逆接続
+      if(posEMF > 0.01 && negEMF > 0.01){
+        reverseDetected = true;
+      }
+
+      // 電池自体に基準の数倍の電流＝負荷が軽すぎる＝実質ショート
+      for(const ei of comp.edgeIdx){
+        const b = branches[ei];
+        if(b.isBattery && Math.abs(b.e.current) > BASELINE_I*SHORT_FACTOR){
+          shortDetected = true;
+        }
+      }
+    }
+
+    if(batteryCount===0){
+      renderStatus('idle','電池を置いて回路をつなげてみよう。');
+    } else if(!anyFlowing){
+      renderStatus('idle','回路が輪になっていません。配線をつないで一周させよう。');
+    } else if(shortDetected){
+      renderStatus('warn','⚠ ショート（短絡）です。電池が豆電球を通らず配線だけでつながっています。大きすぎる電流が流れ、電池がとても速く消耗します。');
+    } else if(reverseDetected){
+      renderStatus('warn','⚠ 電池の向きが逆向きに混ざっています。起電力が打ち消し合い、電流が弱まる（または流れない）状態です。電池をもう一度押すと向きを変えられます。');
+    } else {
+      renderStatus('ok','電流が流れています。粒の動く向きが電流の方向だよ。');
+    }
+
+    updateSidePanel(batteryCount, maxCurrent);
+    updateBulbList();
+    updateBattList();
+  }
+
+  // ---------- 表示更新 ----------
+  function renderStatus(kind,msg){
+    const box = document.getElementById('statusBox');
+    box.className = 'status ' + kind;
+    box.textContent = msg;
+  }
+
+  function updateSidePanel(batteryCount, maxCurrent){
+    document.getElementById('battCountOut').textContent = batteryCount + ' 個';
+    const maxOut = document.getElementById('maxCurrentOut');
+    maxOut.textContent = maxCurrent>0.01 ? maxCurrent.toFixed(2) + ' A' : '—';
+  }
+
+  function updateBulbList(){
+    const list = document.getElementById('bulbList');
+    const bulbs = [...edges.values()].filter(e=>e.type==='bulb');
+    if(bulbs.length===0){
+      list.innerHTML = `<div class="bulb-row"><span class="name" style="color:var(--text-dim)">まだ豆電球がありません</span></div>`;
+      return;
+    }
+    list.innerHTML = bulbs.map((b,i)=>{
+      const I = Math.abs(b.current||0);
+      const lit = I>0.01;
+      const color = lit ? '#ffd27a' : '#3a4450';
+      // 明るさは電力 P=I²R に比例。同じ抵抗の豆電球同士なので電流比の2乗で比較できる。
+      const ratio = lit ? (I/BASELINE_I)**2 : 0;
+      const ratioText = !lit ? '消灯中' : (Math.abs(ratio-1)<0.05 ? '基準と同じ明るさ' : ratio.toFixed(2)+'倍の明るさ');
+      return `<div class="bulb-row" style="flex-direction:column; align-items:stretch; gap:2px;">
+        <div style="display:flex; justify-content:space-between;">
+          <span class="name"><span class="dot" style="background:${color}"></span>豆電球 ${i+1}</span>
+          <span class="amt" style="color:${lit?'var(--copper)':'var(--text-dim)'}">${I.toFixed(2)} A</span>
+        </div>
+        <div style="font-size:11.5px; color:var(--text-dim); padding-left:17px;">${ratioText}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function updateBattList(){
+    const list = document.getElementById('battList');
+    const batts = [...edges.values()].filter(e=>e.type==='battery');
+    if(batts.length===0){
+      list.innerHTML = `<div class="bulb-row"><span class="name" style="color:var(--text-dim)">まだ電池がありません</span></div>`;
+      return;
+    }
+    list.innerHTML = batts.map((b,i)=>{
+      const frac = Math.max(0, (b.charge!==undefined?b.charge:Q_CAP)/Q_CAP);
+      const I = Math.abs(b.current||0);
+      const dead = frac<=DEAD_FRAC;
+      const barCol = dead ? '#5a6470' : (frac<EMF_TAIL ? '#ff8a6b' : '#7be0a8');
+      let lifeText;
+      if(dead){ lifeText = '使い切りました'; }
+      else if(I<0.005){ lifeText = '電流が流れていないので減っていません'; }
+      else {
+        const remainSec = b.charge / I;
+        const lifeRatio = BASELINE_I / I; // 基準(1個+1個)に対する寿命の比
+        const ratioText = Math.abs(lifeRatio-1)<0.05 ? '基準と同じ持ち時間' : lifeRatio.toFixed(2)+'倍の持ち時間';
+        lifeText = `残り約${Math.max(0,remainSec).toFixed(0)}秒（${ratioText}）`;
+      }
+      return `<div class="bulb-row" style="flex-direction:column; align-items:stretch; gap:4px;">
+        <div style="display:flex; justify-content:space-between;">
+          <span class="name"><span class="dot" style="background:${barCol}"></span>電池 ${i+1}</span>
+          <span class="amt" style="color:${dead?'var(--text-dim)':'var(--ice)'}">${(frac*100).toFixed(0)}%</span>
+        </div>
+        <div style="height:4px; border-radius:2px; background:rgba(255,255,255,0.1); overflow:hidden;">
+          <div style="height:100%; width:${(frac*100).toFixed(1)}%; background:${barCol};"></div>
+        </div>
+        <div style="font-size:11.5px; color:var(--text-dim);">${lifeText}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ---------- 描画 ----------
+  function drawGridDots(){
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--grid-dot');
+    for(let c=0;c<COLS;c++) for(let r=0;r<ROWS;r++){
+      const p = nodePos(c,r);
+      ctx.beginPath(); ctx.arc(p.x,p.y,2.5,0,Math.PI*2); ctx.fill();
+    }
+  }
+
+  function drawEmptyEdge(e){
+    const pa = nodePos(e.a.c,e.a.r), pb = nodePos(e.b.c,e.b.r);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(pb.x,pb.y); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawWire(e){
+    const pa = nodePos(e.a.c,e.a.r), pb = nodePos(e.b.c,e.b.r);
+    const live = Math.abs(e.current||0) > 0.01;
+    ctx.save();
+    ctx.strokeStyle = live ? '#cfe9ff' : '#6b7785';
+    ctx.lineWidth = 4;
+    ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(pb.x,pb.y); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawBattery(e){
+    const pa = nodePos(e.a.c,e.a.r), pb = nodePos(e.b.c,e.b.r);
+    const mx=(pa.x+pb.x)/2, my=(pa.y+pb.y)/2;
+    const horizontal = e.a.r===e.b.r;
+    ctx.save();
+    ctx.strokeStyle = '#cfe9ff'; ctx.lineWidth = 4; ctx.lineCap='round';
+    if(horizontal){
+      ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(mx-16,my); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(mx+16,my); ctx.lineTo(pb.x,pb.y); ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(mx,my-16); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(mx,my+16); ctx.lineTo(pb.x,pb.y); ctx.stroke();
+    }
+    // 長短2本線 = 電池記号。flippedで+/-の並びを反転
+    const plusFirst = !e.flipped;
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#ffd27a';
+    if(horizontal){
+      const xLong = plusFirst ? mx-9 : mx+9;
+      const xShort = plusFirst ? mx+9 : mx-9;
+      ctx.beginPath(); ctx.moveTo(xLong,my-13); ctx.lineTo(xLong,my+13); ctx.stroke();
+      ctx.lineWidth=7;
+      ctx.beginPath(); ctx.moveTo(xShort,my-7); ctx.lineTo(xShort,my+7); ctx.stroke();
+    } else {
+      const yLong = plusFirst ? my-9 : my+9;
+      const yShort = plusFirst ? my+9 : my-9;
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(mx-13,yLong); ctx.lineTo(mx+13,yLong); ctx.stroke();
+      ctx.lineWidth=7;
+      ctx.beginPath(); ctx.moveTo(mx-7,yShort); ctx.lineTo(mx+7,yShort); ctx.stroke();
+    }
+    const frac = Math.max(0, (e.charge!==undefined ? e.charge : Q_CAP) / Q_CAP);
+    const lowCharge = frac < EMF_TAIL;
+    const deadCharge = frac <= DEAD_FRAC;
+    const labelCol = deadCharge ? '#8b97a3' : (lowCharge ? '#ff8a6b' : '#ffd27a');
+
+    ctx.fillStyle = labelCol;
+    ctx.font = '11px sans-serif';
+    ctx.textAlign='center';
+    const labelText = deadCharge ? '使い切り' : (frac*100).toFixed(0)+'%';
+    const labelX = mx, labelY = my + (horizontal? -22 : 0) + (horizontal?0:-22);
+    ctx.fillText(labelText, labelX, labelY);
+
+    // 残量ゲージ（小さなバー）。voltageラベルとは反対側に置く
+    const barW = 28, barH = 4;
+    const barX = mx - barW/2;
+    const barY = my + (horizontal? 22 : 0) + (horizontal?0: 26) - (horizontal?0:2);
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.fillRect(barX, barY, barW, barH);
+    const fillCol = deadCharge ? '#5a6470' : (lowCharge ? '#ff8a6b' : '#7be0a8');
+    ctx.fillStyle = fillCol;
+    ctx.fillRect(barX, barY, barW*frac, barH);
+    ctx.restore();
+  }
+
+  function drawBulb(e, t){
+    const pa = nodePos(e.a.c,e.a.r), pb = nodePos(e.b.c,e.b.r);
+    const mx=(pa.x+pb.x)/2, my=(pa.y+pb.y)/2;
+    const horizontal = e.a.r===e.b.r;
+    const I = Math.abs(e.current||0);
+    const brightness = I>0.005 ? Math.min(1, Math.pow(I/0.75, 0.6)) : 0; // 0.75A前後で最大の明るさ
+    ctx.save();
+    // wires leading into the bulb
+    ctx.strokeStyle = brightness>0.03 ? '#cfe9ff' : '#6b7785';
+    ctx.lineWidth=4; ctx.lineCap='round';
+    if(horizontal){
+      ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(mx-16,my); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(mx+16,my); ctx.lineTo(pb.x,pb.y); ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.moveTo(pa.x,pa.y); ctx.lineTo(mx,my-16); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(mx,my+16); ctx.lineTo(pb.x,pb.y); ctx.stroke();
+    }
+    // glow
+    if(brightness>0.02){
+      const glowR = 10 + brightness*26;
+      const grad = ctx.createRadialGradient(mx,my,2,mx,my,glowR);
+      grad.addColorStop(0, `rgba(255,210,120,${0.5*brightness+0.18})`);
+      grad.addColorStop(1, 'rgba(255,210,120,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath(); ctx.arc(mx,my,glowR,0,Math.PI*2); ctx.fill();
+    }
+    // bulb circle
+    const baseCol = brightness>0.02
+      ? `rgb(${Math.round(60+195*brightness)},${Math.round(50+150*brightness)},${Math.round(30+40*brightness)})`
+      : '#2a323a';
+    ctx.beginPath(); ctx.arc(mx,my,13,0,Math.PI*2);
+    ctx.fillStyle = '#11151a';
+    ctx.fill();
+    ctx.lineWidth=2.5; ctx.strokeStyle = baseCol;
+    ctx.stroke();
+    // filament X
+    ctx.strokeStyle = brightness>0.02 ? '#fff3d6' : '#4a5460';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(mx-5,my-5); ctx.lineTo(mx+5,my+5);
+    ctx.moveTo(mx+5,my-5); ctx.lineTo(mx-5,my+5);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 電流アニメーション用の進行度（各edgeごとに独立した位相、0〜CELLの範囲でループ）
+  const phase = new Map();
+
+  function drawCurrentDot(e, key, dt){
+    const I = e.current||0;
+    if(Math.abs(I) < 0.01) return;
+    const pa = nodePos(e.a.c,e.a.r), pb = nodePos(e.b.c,e.b.r);
+    const len = Math.hypot(pb.x-pa.x, pb.y-pa.y);
+    const dirSign = I>=0 ? 1 : -1; // 正方向はa側→b側
+    // 速さは電流の絶対値に比例：強いほど速く、弱いほどゆっくり
+    const speed = 18 + Math.min(Math.abs(I), 1.4) * 95; // px/sec
+    let pos = (phase.get(key)||0) + dirSign*speed*dt;
+    pos = ((pos % len) + len) % len;
+    phase.set(key, pos);
+
+    const ux = (pb.x-pa.x)/len, uy=(pb.y-pa.y)/len;
+    ctx.save();
+    // 一つの点＋短い尾（向きが一目でわかるコメット表現）
+    const trailCount = 4;
+    for(let k=trailCount; k>=0; k--){
+      const tpos = pos - dirSign*k*6.5;
+      if(tpos < 0 || tpos > len) continue; // 端をまたぐ瞬間はその尾だけ隠す
+      const x = pa.x+ux*tpos, y = pa.y+uy*tpos;
+      const alpha = k===0 ? 1 : Math.max(0, 0.55 - k*0.13);
+      const r = k===0 ? 5 : 3.6 - k*0.4;
+      ctx.fillStyle = `rgba(255,200,90,${alpha})`;
+      ctx.beginPath(); ctx.arc(x,y,Math.max(1.2,r),0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ---------- 電池の消耗を時間で進める ----------
+  function updateBatteryCharge(dt){
+    for(const e of edges.values()){
+      if(e.type==='battery'){
+        if(e.charge===undefined) e.charge = Q_CAP;
+        const I = Math.abs(e.current||0);
+        e.charge = Math.max(0, e.charge - I*dt);
+      }
+    }
+  }
+
+  let lastT = performance.now();
+  function frame(now){
+    const dt = Math.min(0.05,(now-lastT)/1000);
+    lastT = now;
+
+    updateBatteryCharge(dt);
+    solve();
+
+    ctx.clearRect(0,0,W,H);
+    drawGridDots();
+
+    for(const [key,e] of edges){ if(e.type==='empty') drawEmptyEdge(e); }
+    for(const [key,e] of edges){ if(e.type==='wire') drawWire(e); }
+    for(const [key,e] of edges){ if(e.type==='battery') drawBattery(e); }
+    for(const [key,e] of edges){ if(e.type==='bulb') drawBulb(e, now); }
+    for(const [key,e] of edges){ if(e.type==='wire'||e.type==='bulb'||e.type==='battery') drawCurrentDot(e,key,dt); }
+
+    requestAnimationFrame(frame);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  solve();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

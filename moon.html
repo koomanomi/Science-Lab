@@ -136,6 +136,41 @@
   .detail-info { font-size: 0.8rem; color: var(--muted); line-height: 1.7; }
   .detail-info strong { color: var(--ink); }
 
+  /* ミニ解説パネル */
+  .explanation-panel {
+    background: linear-gradient(135deg, rgba(255,209,102,0.1), rgba(107,182,255,0.1));
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 20px;
+    max-width: 360px;
+    margin: 0 auto 16px;
+  }
+  .explanation-panel h3 {
+    font-size: 0.9rem;
+    color: var(--accent);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .explanation-diagram {
+    font-size: 0.85rem;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    font-family: monospace;
+    line-height: 1.6;
+    color: #aaa;
+    margin-bottom: 10px;
+  }
+  .explanation-text {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .explanation-text strong { color: var(--ink); }
+
   /* スライダー */
   .slider-panel {
     background: var(--panel);
@@ -148,6 +183,21 @@
   .slider-panel label { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 10px; }
   input[type="range"] {
     width: 100%; accent-color: var(--accent); cursor: pointer;
+  }
+  .day-display {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 1rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .day-display .day-value {
+    font-size: 1.3rem;
+  }
+  .day-display .day-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 4px;
   }
   .controls {
     display: flex; gap: 8px; margin-top: 12px;
@@ -195,9 +245,21 @@
     <div class="detail-info" id="detailInfo"></div>
   </div>
 
+  <!-- ★新しい：ミニ解説パネル -->
+  <div class="explanation-panel">
+    <h3>💡 なぜこの形に見えるのか？</h3>
+    <div class="explanation-diagram" id="diagram"></div>
+    <div class="explanation-text" id="explanation"></div>
+  </div>
+
   <div class="slider-panel">
     <label>月の位置（公転）</label>
     <input type="range" id="slider" min="0" max="11" value="6" step="1">
+    <!-- ★新しい：日数表示 -->
+    <div class="day-display">
+      <div class="day-value" id="dayValue">15日目</div>
+      <div class="day-label">約 29.5日周期</div>
+    </div>
     <div class="controls">
       <button id="playBtn" onclick="togglePlay()">▶ 自動で公転</button>
       <button onclick="resetView()">最初に戻る</button>
@@ -213,29 +275,53 @@
   // 12の月相。frac = 光って見える割合(0〜1)、side = 光る側(right/left/full/none)
   const PHASES = [
     { name: "新月", sub: "しんげつ", frac: 0.0, side: "none",
-      info: "太陽と同じ方向にあり、光った面が地球から見えません。日中に空にありますが、見えません。" },
+      info: "太陽と同じ方向にあり、光った面が地球から見えません。日中に空にありますが、見えません。",
+      diagram: "☀️ 月 ← 地球",
+      explanation: "月が太陽と地球の間にあります。太陽の光が月の側面に当たるため、地球からは見えません。" },
     { name: "三日月", sub: "みかづき", frac: 0.12, side: "right",
-      info: "新月の数日後。夕方の西の空に、右側が細く光って見えます。" },
+      info: "新月の数日後。夕方の西の空に、右側が細く光って見えます。",
+      diagram: "☀️ ← 月 ← 地球",
+      explanation: "月が太陽と地球の間から少しずつ離れていきます。太陽の光が右側を照らし始めます。" },
     { name: "上弦前", sub: "じょうげんまえ", frac: 0.3, side: "right",
-      info: "だんだん右側がふくらんでいきます。" },
+      info: "だんだん右側がふくらんでいきます。",
+      diagram: "☀️   ← 月 ← 地球",
+      explanation: "月が太陽から離れていくので、右側がどんどん明るくなっていきます。" },
     { name: "上弦の月", sub: "じょうげんのつき", frac: 0.5, side: "right",
-      info: "右半分が光って見える半月。夕方に南の空、真夜中に西へしずみます。" },
+      info: "右半分が光って見える半月。夕方に南の空、真夜中に西へしずみます。",
+      diagram: "☀️      ↓ 月 ← 地球",
+      explanation: "月が地球の側面に来ました。太陽の光がちょうど半分を照らします。" },
     { name: "十日夜過ぎ", sub: "とおかんやすぎ", frac: 0.7, side: "right",
-      info: "半月よりもふくらんだ形（じょうげんの月と満月の間）。" },
+      info: "半月よりもふくらんだ形（じょうげんの月と満月の間）。",
+      diagram: "☀️         ↓ 月 ← 地球",
+      explanation: "月がどんどん太陽の反対側に移動していきます。" },
     { name: "十三夜", sub: "じゅうさんや", frac: 0.88, side: "right",
-      info: "満月に近づき、ほぼ丸く見えます。" },
+      info: "満月に近づき、ほぼ丸く見えます。",
+      diagram: "☀️            ↙ 月 ← 地球",
+      explanation: "あと少しで満月です。月がほとんど太陽の反対側に来ました。" },
     { name: "満月", sub: "まんげつ", frac: 1.0, side: "full",
-      info: "太陽と反対側にあり、光った面が全部見えます。夕方に東からのぼり、真夜中に南、明け方に西へ。" },
+      info: "太陽と反対側にあり、光った面が全部見えます。夕方に東からのぼり、真夜中に南、明け方に西へ。",
+      diagram: "☀️                   月 ← 地球",
+      explanation: "月が太陽の真反対に来ました。太陽の光が月全体を照らすので、丸く見えます。" },
     { name: "十六夜", sub: "いざよい", frac: 0.88, side: "left",
-      info: "満月の翌日。左側からわずかに欠けはじめます。" },
+      info: "満月の翌日。左側からわずかに欠けはじめます。",
+      diagram: "☀️ ← 月                  地球",
+      explanation: "満月を過ぎて、月が太陽に近づき始めます。左側が少し暗くなります。" },
     { name: "下弦前", sub: "かげんまえ", frac: 0.7, side: "left",
-      info: "左側が光り、だんだん欠けていきます。" },
+      info: "左側が光り、だんだん欠けていきます。",
+      diagram: "☀️ ← 月          地球 ↑",
+      explanation: "月が太陽に向かって移動しています。左側がだんだん暗くなっていきます。" },
     { name: "下弦の月", sub: "かげんのつき", frac: 0.5, side: "left",
-      info: "左半分が光って見える半月。真夜中に東からのぼり、明け方に南の空。" },
+      info: "左半分が光って見える半月。真夜中に東からのぼり、明け方に南の空。",
+      diagram: "☀️ ← 月  地球",
+      explanation: "月が再び地球の側面に来ました。左側だけが太陽の光に照らされます。" },
     { name: "二十六夜", sub: "にじゅうろくや", frac: 0.3, side: "left",
-      info: "明け方の東の空に、左側が細く光って見えます。" },
+      info: "明け方の東の空に、左側が細く光って見えます。",
+      diagram: "☀️ ← 月 地球",
+      explanation: "月がもう少しで太陽に隠れます。左側がとても細く光ります。" },
     { name: "新月前", sub: "しんげつまえ", frac: 0.12, side: "left",
-      info: "新月にもどる直前。ほとんど見えません。" }
+      info: "新月にもどる直前。ほとんど見えません。",
+      diagram: "☀️ ← 月地球",
+      explanation: "月がもうすぐ太陽と地球の間に来ます。ほぼ見えなくなります。" }
   ];
 
   const spaceView = document.getElementById('spaceView');
@@ -246,6 +332,9 @@
   const detailInfo = document.getElementById('detailInfo');
   const orbit = document.getElementById('orbit');
   const playBtn = document.getElementById('playBtn');
+  const dayValue = document.getElementById('dayValue');
+  const diagram = document.getElementById('diagram');
+  const explanation = document.getElementById('explanation');
 
   let selected = 6; // 満月からスタート
   let playing = false;
@@ -311,6 +400,14 @@
     phaseName.textContent = phase.name;
     phaseSub.textContent = phase.sub;
     detailInfo.innerHTML = phase.info;
+
+    // ★ 日数の計算と表示
+    const days = Math.round((selected / 12) * 29.5);
+    dayValue.textContent = days + '日目';
+
+    // ★ ミニ解説の更新
+    diagram.textContent = phase.diagram;
+    explanation.innerHTML = phase.explanation;
 
     // 地球から見た形を描画
     drawEarthView(phase);
