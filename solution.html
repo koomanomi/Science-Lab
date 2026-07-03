@@ -60,7 +60,7 @@
   .beaker-area { 
     position: relative; 
     width: 120px; 
-    height: 220px; 
+    height: 280px; 
     flex-shrink: 0;
   }
   .beaker {
@@ -166,6 +166,65 @@
   .bubble:nth-child(7) { left: 75%; animation-delay: 0.15s; }
   .bubble:nth-child(8) { left: 85%; animation-delay: 0.35s; }
 
+  /* ===== 沸騰エフェクト ===== */
+  .boil-bubbles {
+    position: absolute;
+    bottom: 0; left: 0; right: 0; top: 0;
+    pointer-events: none;
+    z-index: 3;
+    display: none;
+  }
+  .liquid.boiling .boil-bubbles { display: block; }
+  .boil-bubble {
+    position: absolute;
+    bottom: 2px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.55);
+    animation: boilRise 0.9s ease-in infinite;
+  }
+  @keyframes boilRise {
+    0% { opacity: 0; transform: translateY(0) scale(0.5); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(-52px) scale(1.3); }
+  }
+  .boil-bubble:nth-child(1) { left: 12%; width: 5px; height: 5px; animation-delay: 0s; }
+  .boil-bubble:nth-child(2) { left: 28%; width: 7px; height: 7px; animation-delay: 0.25s; }
+  .boil-bubble:nth-child(3) { left: 44%; width: 5px; height: 5px; animation-delay: 0.5s; }
+  .boil-bubble:nth-child(4) { left: 58%; width: 8px; height: 8px; animation-delay: 0.12s; }
+  .boil-bubble:nth-child(5) { left: 72%; width: 6px; height: 6px; animation-delay: 0.4s; }
+  .boil-bubble:nth-child(6) { left: 85%; width: 5px; height: 5px; animation-delay: 0.65s; }
+  .boil-bubble:nth-child(7) { left: 36%; width: 6px; height: 6px; animation-delay: 0.75s; }
+  .boil-bubble:nth-child(8) { left: 64%; width: 5px; height: 5px; animation-delay: 0.9s; }
+
+  /* 湯気（ビーカーの上） */
+  .steam-area {
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 160px;
+    height: 50px;
+    pointer-events: none;
+    z-index: 3;
+    display: none;
+  }
+  .steam-area.active { display: block; }
+  .steam {
+    position: absolute;
+    bottom: 0;
+    width: 8px; height: 22px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.28);
+    filter: blur(4px);
+    animation: steamUp 1.8s ease-out infinite;
+  }
+  @keyframes steamUp {
+    0% { opacity: 0; transform: translateY(6px) scaleX(1); }
+    30% { opacity: 0.9; }
+    100% { opacity: 0; transform: translateY(-30px) translateX(4px) scaleX(1.6); }
+  }
+  .steam:nth-child(1) { left: 30%; animation-delay: 0s; }
+  .steam:nth-child(2) { left: 48%; animation-delay: 0.6s; }
+  .steam:nth-child(3) { left: 65%; animation-delay: 1.1s; }
+
   .explosion {
     position: absolute; 
     bottom: 50px; 
@@ -187,18 +246,40 @@
 
   .paper {
     position: absolute; 
-    top: 6px; 
-    right: -6px;
-    width: 16px; 
-    height: 55px; 
-    border-radius: 2px;
-    background: #fff; 
-    border: 1px solid var(--line);
-    transition: background 0.5s ease; 
+    top: 4px; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px; 
+    height: 130px; 
+    border-radius: 3px 3px 0 0;
     display: none; 
-    z-index: 3;
+    z-index: 4;
+    overflow: hidden;
   }
   .paper.show { display: block; }
+  /* 上半分（空気中：元の色のまま） */
+  .paper-top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 55%;
+  }
+  /* 下半分（液体に浸かる：変色する） */
+  .paper-bottom {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 45%;
+    transition: background 0.8s ease;
+  }
+  /* 濡れた境界のにじみ */
+  .paper-bottom::before {
+    content: "";
+    position: absolute;
+    top: -4px; left: 0; right: 0;
+    height: 8px;
+    background: inherit;
+    opacity: 0.5;
+    filter: blur(2px);
+  }
 
   /* ===== アルコールランプ ===== */
   .alcohol-lamp-area {
@@ -263,6 +344,100 @@
   @keyframes crystallize {
     0% { opacity: 0; transform: translateY(20px) scale(0.3); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ===== 食塩の3D立方体結晶 ===== */
+  .cube-wrap {
+    width: 20px;
+    height: 20px;
+    perspective: 120px;
+  }
+  .cube {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    animation: spinCube 7s linear infinite;
+  }
+  @keyframes spinCube {
+    0% { transform: rotateX(-20deg) rotateY(0deg); }
+    100% { transform: rotateX(-20deg) rotateY(360deg); }
+  }
+  .cube .face {
+    position: absolute;
+    inset: 0;
+    background: rgba(248, 248, 250, 0.92);
+    border: 1px solid rgba(200, 205, 215, 0.9);
+    box-shadow: inset 0 0 4px rgba(255,255,255,0.9);
+  }
+  .cube .face.front  { transform: translateZ(10px); }
+  .cube .face.back   { transform: rotateY(180deg) translateZ(10px); background: rgba(225, 228, 235, 0.92); }
+  .cube .face.right  { transform: rotateY(90deg) translateZ(10px); background: rgba(235, 238, 244, 0.92); }
+  .cube .face.left   { transform: rotateY(-90deg) translateZ(10px); background: rgba(235, 238, 244, 0.92); }
+  .cube .face.top    { transform: rotateX(90deg) translateZ(10px); background: rgba(255, 255, 255, 0.95); }
+  .cube .face.bottom { transform: rotateX(-90deg) translateZ(10px); background: rgba(215, 218, 226, 0.92); }
+
+  /* ===== ミョウバンの3D正八面体結晶 ===== */
+  .octa-wrap {
+    width: 24px;
+    height: 24px;
+    perspective: 130px;
+  }
+  .octa {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    transform-style: preserve-3d;
+    animation: spinCube 8s linear infinite;
+  }
+  .oface {
+    position: absolute;
+    left: 5px;
+    width: 14px;
+    height: 12px;
+  }
+  .oface.otop {
+    top: 0;
+    clip-path: polygon(50% 0, 0 100%, 100% 100%);
+    transform-origin: 50% 100%;
+  }
+  .oface.obottom {
+    top: 12px;
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+    transform-origin: 50% 0%;
+  }
+
+  /* ===== 硫酸銅の3D柱状結晶（青） ===== */
+  .prism-wrap {
+    width: 18px;
+    height: 26px;
+    perspective: 140px;
+  }
+  .prism {
+    position: relative;
+    width: 16px;
+    height: 24px;
+    margin: 1px;
+    transform-style: preserve-3d;
+    animation: spinCube 8s linear infinite;
+  }
+  .pface { position: absolute; }
+  .pface.pf, .pface.pb, .pface.pl, .pface.pr {
+    left: 0; top: 0; width: 16px; height: 24px;
+  }
+  .pface.pf { transform: translateZ(8px); background: rgba(62, 122, 216, 0.9); }
+  .pface.pb { transform: rotateY(180deg) translateZ(8px); background: rgba(30, 72, 145, 0.9); }
+  .pface.pr { transform: rotateY(90deg) translateZ(8px); background: rgba(45, 95, 185, 0.9); }
+  .pface.pl { transform: rotateY(-90deg) translateZ(8px); background: rgba(45, 95, 185, 0.9); }
+  .pface.pt {
+    left: 0; top: 0; width: 16px; height: 16px;
+    transform: rotateX(90deg) translateZ(8px);
+    background: rgba(110, 160, 235, 0.95);
+  }
+  .pface.pbm {
+    left: 0; bottom: 0; width: 16px; height: 16px;
+    transform: rotateX(-90deg) translateZ(8px);
+    background: rgba(25, 60, 125, 0.9);
   }
 
   .info { 
@@ -452,6 +627,73 @@
     color: var(--muted); 
     text-align: center;
   }
+  .testtube-label.ok { color: #4ade80; font-weight: 700; }
+  .testtube-label.ng { color: #f87171; font-weight: 700; }
+  .testtube-label.part { color: #fbbf24; font-weight: 700; }
+
+  /* ===== 置換法による試験管の向き ===== */
+  /* 上方置換・水上置換：口を下に（逆さま） */
+  .testtube-area.flipped .testtube {
+    border-radius: 16px 16px 4px 4px;
+    border-top: 3px solid rgba(255,255,255,0.4);
+    border-bottom: none;
+  }
+  .testtube-area.flipped .testtube-cap { display: none; }
+  .testtube-area.flipped .gas-fill {
+    bottom: auto;
+    top: 0;
+  }
+  /* 水上置換：水そう */
+  .water-basin {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 58px;
+    height: 20px;
+    background: rgba(80, 140, 200, 0.35);
+    border: 2px solid rgba(150, 190, 230, 0.5);
+    border-radius: 3px;
+    display: none;
+    z-index: 1;
+  }
+  .testtube-area.water-mode .water-basin { display: block; }
+
+  /* ===== 失敗：気体がにげるエフェクト ===== */
+  .escape-puff {
+    position: absolute;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(220, 230, 240, 0.85);
+    pointer-events: none;
+    z-index: 6;
+    opacity: 0;
+  }
+  .escape-puff.esc-up { animation: escUp 1.2s ease-out forwards; }
+  .escape-puff.esc-down { animation: escDown 1.2s ease-in forwards; }
+  .escape-puff.esc-dissolve { animation: escDissolve 1.1s ease-out forwards; }
+  @keyframes escUp {
+    0% { opacity: 0.9; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), -48px) scale(1.5); }
+  }
+  @keyframes escDown {
+    0% { opacity: 0.9; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), 44px) scale(1.5); }
+  }
+  @keyframes escDissolve {
+    0% { opacity: 0.9; transform: translate(-50%, 0) scale(1); }
+    60% { opacity: 0.6; transform: translate(calc(-50% + var(--dx, 0px)), -6px) scale(0.6); }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--dx, 0px)), -8px) scale(0.1); }
+  }
+  /* 失敗時に試験管がプルッとゆれる */
+  @keyframes shakeTube {
+    0%, 100% { transform: translateX(-50%); }
+    25% { transform: translateX(-58%); }
+    75% { transform: translateX(-42%); }
+  }
+  .testtube.shake { animation: shakeTube 0.35s ease; }
 
   .panel {
     background: var(--panel); 
@@ -586,10 +828,22 @@
           <div class="solids-display" id="solidsDisplay"></div>
           <div class="crystals-display" id="crystalsDisplay"></div>
           <div class="bubbles" id="bubbles"></div>
+          <div class="boil-bubbles">
+            <div class="boil-bubble"></div><div class="boil-bubble"></div>
+            <div class="boil-bubble"></div><div class="boil-bubble"></div>
+            <div class="boil-bubble"></div><div class="boil-bubble"></div>
+            <div class="boil-bubble"></div><div class="boil-bubble"></div>
+          </div>
         </div>
       </div>
+      <div class="steam-area" id="steamArea">
+        <div class="steam"></div><div class="steam"></div><div class="steam"></div>
+      </div>
       <div class="explosion" id="explosion"></div>
-      <div class="paper" id="paper"></div>
+      <div class="paper" id="paper">
+        <div class="paper-top" id="paperTop"></div>
+        <div class="paper-bottom" id="paperBottom"></div>
+      </div>
       <div class="alcohol-lamp-area" id="lampArea" onclick="toggleHeating()">
         <svg class="lamp-svg" viewBox="0 0 56 56">
           <!-- 炎 -->
@@ -624,6 +878,7 @@
     <!-- 試験管 -->
     <div class="testtube-area" id="testtubeArea">
       <div class="testtube-cap"></div>
+      <div class="water-basin"></div>
       <div class="testtube" id="testtube">
         <div class="gas-fill" id="gasFill"></div>
         <div class="limewater-fill" id="limewaterFill"></div>
@@ -636,7 +891,7 @@
   </div>
 
   <div class="info">
-    <div class="label" id="label">ビーカーが空です</div>
+    <div class="label" id="label"></div>
     <div class="ph" id="phinfo"></div>
     <div class="recipe" id="recipe"></div>
     <div class="gas-produced" id="gasProd"></div>
@@ -655,10 +910,18 @@
     <div class="grid" id="solids"></div>
   </div>
 
-  <button class="collect-btn" id="collectBtn" onclick="collectGas()" disabled>発生した気体を試験管に集める</button>
+  <div class="panel">
+    <h2>③ 気体の集め方をえらぶ</h2>
+    <div class="grid three" id="collectMethods">
+      <button id="mUp" onclick="collectWithMethod('up')" disabled>上方置換法</button>
+      <button id="mDown" onclick="collectWithMethod('down')" disabled>下方置換法</button>
+      <button id="mWater" onclick="collectWithMethod('water')" disabled>水上置換法</button>
+    </div>
+    <p id="collectHint" style="font-size:0.68rem;color:var(--muted);margin:8px 0 0;">気体が発生したら、集め方をえらんでタップしてね。まちがった方法だと集められないよ。</p>
+  </div>
 
   <div class="panel" id="tubeActionsPanel" style="display:none;">
-    <h2>③ 試験管の気体を調べる</h2>
+    <h2>④ 試験管の気体を調べる</h2>
     <div class="tube-actions" id="tubeActions">
       <button class="match-btn" onclick="testCombustion()">マッチで火をつける</button>
       <button class="limewater-btn" onclick="testLimewater()">石灰水に通す</button>
@@ -666,8 +929,8 @@
   </div>
 
   <div class="panel">
-    <h2>④ 指示薬を入れる（ビーカーへ）</h2>
-    <div class="grid three" id="indicators"></div>
+    <h2>⑤ 指示薬を入れる（ビーカーへ）</h2>
+    <div class="grid" id="indicators"></div>
   </div>
 
   <button class="reset" id="reset">すべてリセット</button>
@@ -676,18 +939,21 @@
 
 <script>
   const SVG = {
-    salt: `<svg viewBox="0 0 40 40"><rect x="10" y="10" width="20" height="20" rx="2" fill="#f5f5f5" stroke="#ccc"/><rect x="14" y="14" width="6" height="6" fill="#fff" opacity="0.8"/></svg>`,
-    sugar: `<svg viewBox="0 0 40 40"><circle cx="14" cy="22" r="5" fill="#fff8e8"/><circle cx="24" cy="18" r="5" fill="#fffdf2"/><circle cx="20" cy="28" r="4" fill="#fff5e0"/></svg>`,
-    limestone: `<svg viewBox="0 0 40 40"><polygon points="8,28 14,12 26,10 34,22 30,32 14,34" fill="#d4c8b0" stroke="#a89878" stroke-width="1"/><polygon points="14,12 26,10 22,18" fill="#e0d6c0"/></svg>`,
-    calcium_hydroxide: `<svg viewBox="0 0 40 40"><circle cx="13" cy="24" r="5" fill="#f5f5f5"/><circle cx="23" cy="20" r="5" fill="#fafafa"/><circle cx="19" cy="29" r="4" fill="#eee"/></svg>`,
+    salt: `<svg viewBox="0 0 40 40"><rect x="8" y="22" width="6" height="6" fill="#f8f8f8" stroke="#d8d8d8" stroke-width="0.5"/><rect x="17" y="18" width="5" height="5" fill="#ffffff" stroke="#ddd" stroke-width="0.5"/><rect x="24" y="24" width="6" height="6" fill="#f2f2f2" stroke="#d0d0d0" stroke-width="0.5"/><rect x="14" y="27" width="4" height="4" fill="#fbfbfb"/><rect x="27" y="17" width="4" height="4" fill="#f5f5f5"/><rect x="11" y="16" width="3.5" height="3.5" fill="#fdfdfd"/></svg>`,
+    sugar: `<svg viewBox="0 0 40 40"><g fill="#fffdf5"><circle cx="12" cy="24" r="1.6"/><circle cx="16" cy="21" r="1.4"/><circle cx="20" cy="25" r="1.7"/><circle cx="24" cy="20" r="1.4"/><circle cx="28" cy="24" r="1.6"/><circle cx="14" cy="28" r="1.5"/><circle cx="19" cy="29" r="1.4"/><circle cx="24" cy="28" r="1.6"/><circle cx="28" cy="29" r="1.3"/><circle cx="22" cy="23" r="1.2"/><circle cx="10" cy="20" r="1.2"/><circle cx="31" cy="21" r="1.2"/></g></svg>`,
+    limestone: `<svg viewBox="0 0 40 40"><polygon points="6,30 10,16 17,10 27,9 34,17 36,26 30,33 18,35 9,34" fill="#cfc3aa" stroke="#9a8b6e" stroke-width="1"/><polyline points="10,16 18,20 27,9" fill="none" stroke="#b3a284" stroke-width="1"/><polyline points="18,20 16,32" fill="none" stroke="#b3a284" stroke-width="1"/><polygon points="17,10 27,9 18,20" fill="#e2d8c2"/><polygon points="34,17 36,26 28,22" fill="#bfb197"/></svg>`,
+    calcium_hydroxide: `<svg viewBox="0 0 40 40"><g fill="#f5f5f5"><circle cx="12" cy="24" r="1.8"/><circle cx="16" cy="21" r="1.5"/><circle cx="20" cy="25" r="1.8"/><circle cx="24" cy="21" r="1.5"/><circle cx="28" cy="25" r="1.7"/><circle cx="14" cy="28" r="1.6"/><circle cx="19" cy="29" r="1.5"/><circle cx="25" cy="28" r="1.6"/></g></svg>`,
     sodium_hydroxide: `<svg viewBox="0 0 40 40"><rect x="12" y="16" width="7" height="7" rx="1" fill="#fffce0"/><rect x="21" y="20" width="6" height="6" rx="1" fill="#fffae0"/><rect x="16" y="24" width="6" height="6" rx="1" fill="#fff8d8"/></svg>`,
-    manganese_dioxide: `<svg viewBox="0 0 40 40"><circle cx="13" cy="24" r="4" fill="#2a2a2a"/><circle cx="22" cy="20" r="4" fill="#1a1a1a"/><circle cx="18" cy="28" r="3.5" fill="#333"/><circle cx="27" cy="26" r="3" fill="#222"/></svg>`,
+    manganese_dioxide: `<svg viewBox="0 0 40 40"><polygon points="8,28 12,18 20,15 26,20 24,30 14,32" fill="#242424" stroke="#000" stroke-width="0.8"/><polygon points="24,26 30,18 35,24 33,31 26,32" fill="#1a1a1a" stroke="#000" stroke-width="0.8"/><polyline points="12,18 18,24 24,30" stroke="#3a3a3a" fill="none" stroke-width="1"/><polygon points="12,18 20,15 18,24" fill="#333"/></svg>`,
     iron: `<svg viewBox="0 0 40 40"><rect x="8" y="18" width="24" height="5" rx="1" fill="#8a9199" transform="rotate(-15 20 20)"/><rect x="8" y="18" width="24" height="2" rx="1" fill="#b0b8c0" transform="rotate(-15 20 20)"/></svg>`,
     aluminum: `<svg viewBox="0 0 40 40"><polygon points="10,16 30,12 32,24 12,28" fill="#c4c8cc"/><polygon points="10,16 30,12 28,18 12,20" fill="#e0e4e8"/></svg>`,
     carbon: `<svg viewBox="0 0 40 40"><circle cx="14" cy="24" r="4" fill="#111"/><circle cx="23" cy="21" r="4" fill="#1a1a1a"/><circle cx="19" cy="29" r="3.5" fill="#0a0a0a"/></svg>`,
     copper: `<svg viewBox="0 0 40 40"><polygon points="10,22 16,14 28,16 30,26 18,30" fill="#b87333" stroke="#8a561f" stroke-width="1"/><polygon points="16,14 28,16 22,20" fill="#d4915c"/></svg>`,
     copper_oxide: `<svg viewBox="0 0 40 40"><circle cx="14" cy="24" r="4" fill="#0d3d22"/><circle cx="23" cy="21" r="4" fill="#0a3019"/><circle cx="19" cy="29" r="3.5" fill="#114d2b"/></svg>`,
-    sulfur: `<svg viewBox="0 0 40 40"><circle cx="13" cy="25" r="4.5" fill="#e3c33b"/><circle cx="23" cy="22" r="4.5" fill="#ecd14a"/><circle cx="18" cy="29" r="4" fill="#d8b82e"/><circle cx="27" cy="27" r="3.5" fill="#e3c33b"/></svg>`
+    sulfur: `<svg viewBox="0 0 40 40"><circle cx="13" cy="25" r="4.5" fill="#e3c33b"/><circle cx="23" cy="22" r="4.5" fill="#ecd14a"/><circle cx="18" cy="29" r="4" fill="#d8b82e"/><circle cx="27" cy="27" r="3.5" fill="#e3c33b"/></svg>`,
+    alum: `<svg viewBox="0 0 40 40"><polygon points="20,6 32,20 20,34 8,20" fill="#eef2f6" stroke="#c3ccd6" stroke-width="1"/><polygon points="20,6 32,20 20,20" fill="#ffffff" opacity="0.7"/><polygon points="20,20 20,34 8,20" fill="#d7dee6"/></svg>`,
+    boric_acid: `<svg viewBox="0 0 40 40"><g fill="#fafbfd" stroke="#d5dae2" stroke-width="0.6"><polygon points="12,22 15,18 20,18 23,22 20,26 15,26"/><polygon points="22,27 25,24 29,24 31,27 29,31 25,31"/><polygon points="8,29 10,26 14,26 16,29 14,32 10,32"/></g></svg>`,
+    copper_sulfate: `<svg viewBox="0 0 40 40"><polygon points="10,26 16,12 26,10 32,18 28,30 14,32" fill="#2f6fd0" stroke="#1d4c96" stroke-width="1"/><polygon points="16,12 26,10 22,20" fill="#5b92e5"/><polygon points="10,26 22,20 14,32" fill="#2258ad"/></svg>`
   };
 
   const LIQUIDS = {
@@ -710,29 +976,48 @@
     "炭素": { property: "neutral", svg: "carbon", soluble: false, heatBehavior: "none" },
     "銅": { property: "neutral", svg: "copper", soluble: false, heatBehavior: "none" },
     "酸化銅": { property: "neutral", svg: "copper_oxide", soluble: false, heatBehavior: "none" },
-    "硫黄": { property: "neutral", svg: "sulfur", soluble: false, heatBehavior: "none" }
+    "硫黄": { property: "neutral", svg: "sulfur", soluble: false, heatBehavior: "none" },
+    "ミョウバン": { property: "acid", svg: "alum", soluble: true, heatBehavior: "crystallize" },
+    "ホウ酸": { property: "acid", svg: "boric_acid", soluble: true, heatBehavior: "crystallize" },
+    "硫酸銅": { property: "acid", svg: "copper_sulfate", soluble: true, heatBehavior: "crystallize", solutionColor: "rgba(45, 110, 220, 0.45)" }
   };
 
+  // air: 空気とくらべた重さ / waterSol: 水へのとけやすさ
   const GASES = {
-    "酸素": { property: "neutral", smell: "", combustible: "oxygen", color: "rgba(180,220,255,0.08)" },
-    "二酸化炭素": { property: "acid", smell: "においはない", combustible: "co2", color: "rgba(200,200,200,0.1)" },
-    "塩化水素": { property: "acid", smell: "つんとくるにおい", combustible: "none", color: "rgba(255,240,200,0.12)" },
-    "アンモニア": { property: "base", smell: "つんとくるにおい（独特）", combustible: "none", color: "rgba(220,255,220,0.1)" },
-    "水素": { property: "neutral", smell: "においはない", combustible: "hydrogen", color: "rgba(220,220,255,0.08)" }
+    "酸素": { property: "neutral", smell: "", combustible: "oxygen", color: "rgba(180,220,255,0.08)", air: "heavier", airText: "空気よりわずかに重い", waterSol: "low" },
+    "二酸化炭素": { property: "acid", smell: "においはない", combustible: "co2", color: "rgba(200,200,200,0.1)", air: "heavier", airText: "空気より重い", waterSol: "slight" },
+    "塩化水素": { property: "acid", smell: "つんとくるにおい", combustible: "none", color: "rgba(255,240,200,0.12)", air: "heavier", airText: "空気より重い", waterSol: "high" },
+    "アンモニア": { property: "base", smell: "つんとくるにおい（独特）", combustible: "none", color: "rgba(220,255,220,0.1)", air: "lighter", airText: "空気より軽い", waterSol: "high" },
+    "水素": { property: "neutral", smell: "においはない", combustible: "hydrogen", color: "rgba(220,220,255,0.08)", air: "lighter", airText: "空気よりずっと軽い", waterSol: "low" }
   };
 
   const INDICATORS = {
     "BTB液": {
+      type: "liquid",
       colors: { acid: "rgba(245, 215, 110, 0.85)", neutral: "rgba(126, 200, 80, 0.85)", base: "rgba(59, 127, 212, 0.85)" },
       desc: { acid: "黄色", neutral: "緑色", base: "青色" }
     },
     "フェノールフタレイン": {
+      type: "liquid",
       colors: { acid: "rgba(220, 235, 245, 0.12)", neutral: "rgba(220, 235, 245, 0.12)", base: "rgba(232, 90, 155, 0.85)" },
       desc: { acid: "むしょく", neutral: "むしょく", base: "赤むらさき色" }
     },
-    "リトマス紙": {
-      colors: { acid: "#e8554e", neutral: "#cdb9a0", base: "#4a78c4" },
-      desc: { acid: "赤", neutral: "変わらない", base: "青" }
+    "紫キャベツ液": {
+      type: "liquid",
+      colors: { acid: "rgba(220, 70, 90, 0.8)", neutral: "rgba(140, 80, 170, 0.8)", base: "rgba(225, 205, 70, 0.85)" },
+      desc: { acid: "赤色", neutral: "むらさき色", base: "黄色" }
+    },
+    "赤リトマス紙": {
+      type: "paper",
+      paperBase: "#e8908a",
+      colors: { acid: "#e8908a", neutral: "#e8908a", base: "#5a7fc4" },
+      desc: { acid: "変わらない（赤）", neutral: "変わらない（赤）", base: "青に変わった" }
+    },
+    "青リトマス紙": {
+      type: "paper",
+      paperBase: "#7a9fd8",
+      colors: { acid: "#e8554e", neutral: "#7a9fd8", base: "#7a9fd8" },
+      desc: { acid: "赤に変わった", neutral: "変わらない（青）", base: "変わらない（青）" }
     }
   };
 
@@ -747,17 +1032,20 @@
     "希塩酸+石灰石": { formula: "2HCl + CaCO₃ → CaCl₂ + H₂O + CO₂↑", bubbles: true, gas: "二酸化炭素（CO₂）", gasKey: "二酸化炭素", smell: "", combustible: "co2" },
     "希硫酸+石灰石": { formula: "H₂SO₄ + CaCO₃ → CaSO₄ + H₂O + CO₂↑", bubbles: true, gas: "二酸化炭素（CO₂）", gasKey: "二酸化炭素", smell: "", combustible: "co2" },
     "お酢+石灰石": { formula: "2CH₃COOH + CaCO₃ → (CH₃COO)₂Ca + H₂O + CO₂↑", bubbles: true, gas: "二酸化炭素（CO₂）", gasKey: "二酸化炭素", smell: "すっぱいにおい", combustible: "co2" },
-    "希塩酸+水酸化ナトリウム": { formula: "HCl + NaOH → NaCl + H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
-    "希塩酸+水酸化カルシウム": { formula: "2HCl + Ca(OH)₂ → CaCl₂ + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
-    "希硫酸+水酸化ナトリウム": { formula: "H₂SO₄ + 2NaOH → Na₂SO₄ + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
-    "希硫酸+水酸化カルシウム": { formula: "H₂SO₄ + Ca(OH)₂ → CaSO₄ + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
-    "お酢+水酸化ナトリウム": { formula: "CH₃COOH + NaOH → CH₃COONa + H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
-    "お酢+水酸化カルシウム": { formula: "2CH₃COOH + Ca(OH)₂ → (CH₃COO)₂Ca + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true },
+    "希塩酸+水酸化ナトリウム": { formula: "HCl + NaOH → NaCl + H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true, residue: { svg: "salt", name: "食塩（NaCl）" } },
+    "希塩酸+水酸化カルシウム": { formula: "2HCl + Ca(OH)₂ → CaCl₂ + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true, residue: { svg: "calcium_hydroxide", name: "塩化カルシウム（CaCl₂）" } },
+    "希硫酸+水酸化ナトリウム": { formula: "H₂SO₄ + 2NaOH → Na₂SO₄ + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true, residue: { svg: "sodium_hydroxide", name: "硫酸ナトリウム（Na₂SO₄）" } },
+    "希硫酸+水酸化カルシウム": { formula: "H₂SO₄ + Ca(OH)₂ → CaSO₄ + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true, residue: { svg: "calcium_hydroxide", name: "硫酸カルシウム（CaSO₄）" } },
+    "お酢+水酸化ナトリウム": { formula: "CH₃COOH + NaOH → CH₃COONa + H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true, residue: { svg: "sodium_hydroxide", name: "酢酸ナトリウム（CH₃COONa）" } },
+    "お酢+水酸化カルシウム": { formula: "2CH₃COOH + Ca(OH)₂ → (CH₃COO)₂Ca + 2H₂O（中和）", bubbles: false, gas: "", smell: "", combustible: "none", neutralize: true, residue: { svg: "calcium_hydroxide", name: "酢酸カルシウム" } },
     "過酸化水素水+二酸化マンガン": { formula: "2H₂O₂ → 2H₂O + O₂↑（MnO₂は触媒）", bubbles: true, gas: "酸素（O₂）", gasKey: "酸素", smell: "", combustible: "oxygen" },
     "水+食塩": { formula: "NaCl → 水にとける（化学反応ではなく溶解）", bubbles: false, gas: "", smell: "", combustible: "none" },
     "水+砂糖": { formula: "砂糖 → 水にとける（化学反応ではなく溶解）", bubbles: false, gas: "", smell: "", combustible: "none" },
     "水+水酸化ナトリウム": { formula: "NaOH → 水にとけてアルカリ性に（熱が出る）", bubbles: false, gas: "", smell: "", combustible: "none" },
     "水+水酸化カルシウム": { formula: "Ca(OH)₂ → 少し水にとけて石灰水になる", bubbles: false, gas: "", smell: "", combustible: "none" },
+    "水+ミョウバン": { formula: "ミョウバン → 水にとける（温度で溶ける量が大きく変わる）", bubbles: false, gas: "", smell: "", combustible: "none" },
+    "水+ホウ酸": { formula: "ホウ酸 → 少し水にとける（水溶液は酸性）", bubbles: false, gas: "", smell: "", combustible: "none" },
+    "水+硫酸銅": { formula: "CuSO₄ → 水にとけて青色の水溶液になる", bubbles: false, gas: "", smell: "", combustible: "none" },
     "塩化水素": { formula: "HCl（気体）→ 水にとけると塩酸（酸性）", bubbles: false, gas: "塩化水素（HCl）", gasKey: "塩化水素", smell: "つんとくるにおい", combustible: "none" },
     "アンモニア": { formula: "NH₃（気体）→ 水にとけるとアンモニア水（アルカリ性）", bubbles: false, gas: "アンモニア（NH₃）", gasKey: "アンモニア", smell: "つんとくるにおい（独特）", combustible: "none" },
     "二酸化炭素": { formula: "CO₂（気体）→ 水にとけると炭酸水（酸性）", bubbles: false, gas: "二酸化炭素（CO₂）", gasKey: "二酸化炭素", smell: "においはない", combustible: "co2" },
@@ -780,6 +1068,8 @@
   const crystalsDisplayEl = document.getElementById('crystalsDisplay');
   const bubblesEl = document.getElementById('bubbles');
   const paperEl = document.getElementById('paper');
+  const paperTopEl = document.getElementById('paperTop');
+  const paperBottomEl = document.getElementById('paperBottom');
   const labelEl = document.getElementById('label');
   const phEl = document.getElementById('phinfo');
   const recipeEl = document.getElementById('recipe');
@@ -789,7 +1079,11 @@
   const hintEl = document.getElementById('hint');
   const beakerEl = document.getElementById('beaker');
   const explosionEl = document.getElementById('explosion');
-  const collectBtn = document.getElementById('collectBtn');
+  const methodBtns = [document.getElementById('mUp'), document.getElementById('mDown'), document.getElementById('mWater')];
+  const tubeActionsPanel = document.getElementById('tubeActionsPanel');
+  function setMethodsEnabled(on) {
+    methodBtns.forEach(b => b.disabled = !on);
+  }
   const tubeConnector = document.getElementById('tubeConnector');
   const testtubeArea = document.getElementById('testtubeArea');
   const gasFillEl = document.getElementById('gasFill');
@@ -803,6 +1097,7 @@
   const lampArea = document.getElementById('lampArea');
   const lampFlame = document.getElementById('lampFlame');
   const lampTag = document.getElementById('lampTag');
+  const steamArea = document.getElementById('steamArea');
 
   Object.keys(LIQUIDS).forEach(name => {
     const b = document.createElement('button');
@@ -944,6 +1239,8 @@
     lampArea.classList.add('on');
     lampFlame.classList.add('active');
     lampTag.textContent = "加熱中…";
+    liquidEl.classList.add('boiling');
+    steamArea.classList.add('active');
     liquidHeight = 58;
     heatTimer = setInterval(() => {
       liquidHeight -= 2;
@@ -961,78 +1258,253 @@
     lampArea.classList.remove('on');
     lampFlame.classList.remove('active');
     lampTag.textContent = "アルコールランプ";
+    liquidEl.classList.remove('boiling');
+    steamArea.classList.remove('active');
   }
 
   function completeHeating() {
     stopHeating();
-    // 加熱完了：蒸発した固体が結晶化
+    liquidEl.style.height = '0%';
+
+    const messages = [];
+
+    // 1) 中和反応などで生成した塩（residue）が結晶化
+    const reaction = findReaction();
+    if (reaction && reaction.residue) {
+      createCrystals(reaction.residue.svg, 0);
+      let msg = reaction.residue.name + " の結晶が出てきた！";
+      if (reaction.residue.svg === "salt") msg += " 食塩の結晶は立方体（サイコロの形）です。";
+      messages.push(msg);
+    }
+
+    // 2) 溶けていた固体の挙動
     const dissolved = [];
     selectedSolids.forEach(solid => {
       if (SOLIDS[solid].soluble && currentLiquid) dissolved.push(solid);
     });
-
-    // 固体ごとの挙動
     dissolved.forEach((solid, idx) => {
       const behavior = SOLIDS[solid].heatBehavior;
       if (behavior === "crystallize") {
-        // 結晶化
-        createCrystals(solid, idx);
+        // 中和で消費された固体は結晶化させない（residue側で表現済み）
+        if (!(reaction && reaction.neutralize)) {
+          createCrystals(SOLIDS[solid].svg, idx + 1);
+          let smsg = solid + " の結晶が出てきた！";
+          if (SOLIDS[solid].svg === "salt") smsg += " 食塩の結晶は立方体（サイコロの形）です。";
+          if (SOLIDS[solid].svg === "alum") smsg += " ミョウバンの結晶は正八面体です。";
+          if (SOLIDS[solid].svg === "copper_sulfate") smsg += " 硫酸銅の結晶は青い柱のような形です。";
+          messages.push(smsg);
+        }
       } else if (behavior === "burn") {
-        // 焦げる
         burnedSolids.add(solid);
-        hintEl.textContent = "砂糖が焦げました！カラメル化が起こりました。";
+        messages.push("砂糖が焦げました！（カラメル化）");
       }
     });
 
-    if (dissolved.length > 0) {
-      hintEl.textContent = "液体が蒸発しました。加熱を停止しています。";
-      liquidEl.style.height = '0%';
+    if (messages.length > 0) {
+      hintEl.textContent = "水が蒸発した。" + messages.join(" ");
+    } else {
+      hintEl.textContent = "水が蒸発した。あとには何も残らなかった。";
     }
   }
 
-  function createCrystals(solidName, delay) {
-    const solid = SOLIDS[solidName];
+  function createCrystals(svgKey, delay) {
     const numCrystals = 6 + Math.floor(Math.random() * 4);
     for (let i = 0; i < numCrystals; i++) {
       const crystal = document.createElement('div');
       crystal.className = 'crystal';
       crystal.style.animationDelay = (delay * 0.2 + i * 0.15) + 's';
-      
-      // SVG を大きく表示
-      const svg = SVG[solid.svg];
-      crystal.innerHTML = svg;
-      
-      // 白い背景を追加（結晶が目立つように）
-      const bgDiv = document.createElement('div');
-      bgDiv.style.position = 'absolute';
-      bgDiv.style.inset = '-2px';
-      bgDiv.style.background = 'rgba(255,255,255,0.08)';
-      bgDiv.style.borderRadius = '4px';
-      bgDiv.style.zIndex = '-1';
-      
-      crystal.style.position = 'relative';
-      crystal.appendChild(bgDiv);
-      
+
+      if (svgKey === "salt") {
+        // 食塩（NaCl）：立方体
+        crystal.appendChild(build3DCube(i));
+      } else if (svgKey === "alum") {
+        // ミョウバン：正八面体
+        crystal.appendChild(build3DOcta(i));
+      } else if (svgKey === "copper_sulfate") {
+        // 硫酸銅：青い柱状結晶
+        crystal.appendChild(build3DPrism(i));
+      } else {
+        crystal.innerHTML = SVG[svgKey];
+        const bgDiv = document.createElement('div');
+        bgDiv.style.position = 'absolute';
+        bgDiv.style.inset = '-2px';
+        bgDiv.style.background = 'rgba(255,255,255,0.08)';
+        bgDiv.style.borderRadius = '4px';
+        bgDiv.style.zIndex = '-1';
+        crystal.style.position = 'relative';
+        crystal.appendChild(bgDiv);
+      }
+
       crystalsDisplayEl.appendChild(crystal);
     }
   }
 
-  function collectGas() {
+  function build3DCube(i) {
+    const wrap = document.createElement('div');
+    wrap.className = 'cube-wrap';
+    const cube = document.createElement('div');
+    cube.className = 'cube';
+    cube.style.animationDelay = (-i * 1.1) + 's';
+    cube.style.animationDuration = (6 + (i % 3)) + 's';
+    ['front','back','right','left','top','bottom'].forEach(f => {
+      const face = document.createElement('div');
+      face.className = 'face ' + f;
+      cube.appendChild(face);
+    });
+    wrap.appendChild(cube);
+    return wrap;
+  }
+
+  function build3DOcta(i) {
+    const wrap = document.createElement('div');
+    wrap.className = 'octa-wrap';
+    const octa = document.createElement('div');
+    octa.className = 'octa';
+    octa.style.animationDelay = (-i * 1.3) + 's';
+    octa.style.animationDuration = (7 + (i % 3)) + 's';
+    const topShades = ['rgba(250,252,255,0.95)','rgba(215,224,235,0.95)','rgba(232,238,246,0.95)','rgba(205,214,228,0.95)'];
+    const botShades = ['rgba(226,232,242,0.95)','rgba(190,200,214,0.95)','rgba(208,216,228,0.95)','rgba(180,190,205,0.95)'];
+    for (let k = 0; k < 4; k++) {
+      const t = document.createElement('div');
+      t.className = 'oface otop';
+      t.style.transform = `rotateY(${k * 90}deg) translateZ(7px) rotateX(35deg)`;
+      t.style.background = topShades[k];
+      octa.appendChild(t);
+      const b = document.createElement('div');
+      b.className = 'oface obottom';
+      b.style.transform = `rotateY(${k * 90}deg) translateZ(7px) rotateX(-35deg)`;
+      b.style.background = botShades[k];
+      octa.appendChild(b);
+    }
+    wrap.appendChild(octa);
+    return wrap;
+  }
+
+  function build3DPrism(i) {
+    const wrap = document.createElement('div');
+    wrap.className = 'prism-wrap';
+    const prism = document.createElement('div');
+    prism.className = 'prism';
+    prism.style.animationDelay = (-i * 1.2) + 's';
+    prism.style.animationDuration = (7 + (i % 3)) + 's';
+    ['pf','pb','pr','pl','pt','pbm'].forEach(f => {
+      const face = document.createElement('div');
+      face.className = 'pface ' + f;
+      prism.appendChild(face);
+    });
+    wrap.appendChild(prism);
+    return wrap;
+  }
+
+  // ===== 気体の集め方の判定 =====
+  // 性質（空気とくらべた重さ・水へのとけやすさ）から結果を導く
+  function evalCollection(gasKey, method) {
+    const g = GASES[gasKey];
+    if (method === 'water') {
+      if (g.waterSol === 'high') {
+        return { ok: 'no', dir: 'dissolve', why: gasKey + "は水にとけやすいので、水の中でとけてしまい集められません。" };
+      }
+      return { ok: 'yes', why: gasKey + "は水にとけにくいので、水上置換法でしっかり集められます。" };
+    }
+    if (method === 'up') {
+      if (g.air === 'lighter') {
+        if (g.waterSol === 'high') {
+          return { ok: 'yes', why: gasKey + "は" + g.airText + "ので、上方置換法で集められます。" };
+        }
+        return { ok: 'part', why: gasKey + "は集まったけど、空気が混ざってしまう…。水にとけにくい気体は水上置換法がベスト！" };
+      }
+      return { ok: 'no', dir: 'down', why: gasKey + "は" + g.airText + "ので、口を下に向けると下からにげてしまいます。" };
+    }
+    if (method === 'down') {
+      if (g.air === 'heavier') {
+        if (g.waterSol === 'low') {
+          return { ok: 'part', why: gasKey + "は集まったけど、空気が混ざってしまう…。水にとけにくい気体は水上置換法がベスト！" };
+        }
+        return { ok: 'yes', why: gasKey + "は" + g.airText + "ので、下方置換法で集められます。" };
+      }
+      return { ok: 'no', dir: 'up', why: gasKey + "は" + g.airText + "ので、上へにげてしまいます。" };
+    }
+  }
+
+  const METHOD_NAMES = { up: "上方置換法", down: "下方置換法", water: "水上置換法" };
+
+  function collectWithMethod(method) {
     const gasKey = getCurrentGasKey();
     if (!gasKey) return;
 
-    collectedGas = gasKey;
+    // 試験管の向きをセット
+    resetTestTube();
+    testtubeArea.classList.add('has-gas');
+    if (method === 'up' || method === 'water') testtubeArea.classList.add('flipped');
+    if (method === 'water') testtubeArea.classList.add('water-mode');
+    testtubeLabelEl.textContent = METHOD_NAMES[method] + "で集めています…";
+
+    const result = evalCollection(gasKey, method);
     tubeConnector.classList.add('active');
 
     setTimeout(() => {
       tubeConnector.classList.remove('active');
-      gasFillEl.classList.add('filled');
-      gasFillEl.style.background = GASES[gasKey] ? GASES[gasKey].color : "rgba(200,200,200,0.1)";
-      testtubeArea.classList.add('has-gas');
-      testtubeLabelEl.textContent = gasKey + " を集めた";
-      tubeActions.style.display = 'flex';
-      hintEl.textContent = "試験管に" + gasKey + "を集めた。マッチで火をつけるか、石灰水に通してみよう。";
+
+      if (result.ok === 'yes') {
+        collectedGas = gasKey;
+        gasFillEl.classList.add('filled');
+        gasFillEl.style.background = GASES[gasKey].color;
+        testtubeLabelEl.textContent = gasKey + " を集めた！";
+        testtubeLabelEl.className = 'testtube-label ok';
+        tubeActionsPanel.style.display = 'block';
+        tubeActions.style.display = 'flex';
+        hintEl.textContent = "せいこう！" + result.why;
+        // 集め終わったら試験管をとり出す（向きをもどす）
+        setTimeout(() => {
+          testtubeArea.classList.remove('flipped', 'water-mode');
+        }, 1400);
+      } else if (result.ok === 'part') {
+        collectedGas = gasKey;
+        gasFillEl.classList.add('filled');
+        // 空気まじり：にごったグレー
+        gasFillEl.style.background = "rgba(180, 185, 195, 0.22)";
+        testtubeLabelEl.textContent = gasKey + "（空気まじり）";
+        testtubeLabelEl.className = 'testtube-label part';
+        tubeActionsPanel.style.display = 'block';
+        tubeActions.style.display = 'flex';
+        hintEl.textContent = result.why;
+        setTimeout(() => {
+          testtubeArea.classList.remove('flipped', 'water-mode');
+        }, 1400);
+      } else {
+        // 失敗：気体がにげる
+        collectedGas = null;
+        testtubeEl.classList.add('shake');
+        setTimeout(() => testtubeEl.classList.remove('shake'), 400);
+        spawnEscapePuffs(result.dir, method);
+        testtubeLabelEl.textContent = "集められなかった…";
+        testtubeLabelEl.className = 'testtube-label ng';
+        hintEl.textContent = "しっぱい！" + result.why;
+      }
     }, 900);
+  }
+
+  // にげる気体のエフェクト
+  function spawnEscapePuffs(dir, method) {
+    for (let i = 0; i < 6; i++) {
+      const puff = document.createElement('div');
+      puff.className = 'escape-puff esc-' + (dir === 'dissolve' ? 'dissolve' : dir);
+      puff.style.setProperty('--dx', (Math.random() * 24 - 12) + 'px');
+      puff.style.animationDelay = (i * 0.12) + 's';
+      // 出発位置：口の位置（向きで変わる）
+      if (dir === 'up') {
+        // 口が上（通常向き）から上へにげる
+        puff.style.top = '52px';
+      } else if (dir === 'down') {
+        // 口が下（逆さま）から下へにげる
+        puff.style.bottom = '14px';
+      } else {
+        // 水そうの中でとけて消える
+        puff.style.bottom = '6px';
+      }
+      testtubeArea.appendChild(puff);
+      setTimeout(() => puff.remove(), 1600);
+    }
   }
 
   function testCombustion() {
@@ -1055,6 +1527,7 @@
         hintEl.textContent = "ポンと音がして爆発した！水素はとても燃えやすい気体です。";
         collectedGas = null;
         tubeActions.style.display = 'none';
+        tubeActionsPanel.style.display = 'none';
       }, 350);
     } else if (combustible === "oxygen") {
       tubeFlameEl.classList.add('burn');
@@ -1105,10 +1578,13 @@
     tubeFlameEl.classList.remove('burn', 'burn-big');
     tubeExtinguishEl.classList.remove('show');
     tubeExplosionEl.classList.remove('active');
-    testtubeEl.classList.remove('broken');
-    testtubeArea.classList.remove('has-gas');
+    testtubeEl.classList.remove('broken', 'shake');
+    testtubeArea.classList.remove('has-gas', 'flipped', 'water-mode');
+    testtubeArea.querySelectorAll('.escape-puff').forEach(p => p.remove());
     testtubeLabelEl.textContent = "気体なし";
+    testtubeLabelEl.className = 'testtube-label';
     tubeActions.style.display = 'none';
+    tubeActionsPanel.style.display = 'none';
   }
 
   function render() {
@@ -1122,13 +1598,13 @@
       crystalsDisplayEl.innerHTML = '';
       updateBubbles(false);
       paperEl.classList.remove('show');
-      labelEl.textContent = "ビーカーが空です";
+      labelEl.textContent = "";
       phEl.textContent = ""; 
       recipeEl.textContent = "";
       gasProdEl.textContent = ""; 
       reactionEl.textContent = ""; 
       smellEl.textContent = "";
-      collectBtn.disabled = true;
+      setMethodsEnabled(false);
       hintEl.textContent = "まず液体をえらんでね。";
       return;
     }
@@ -1153,12 +1629,12 @@
       reactionEl.textContent = reaction.formula;
       gasProdEl.textContent = reaction.gas ? "→ " + reaction.gas + " が発生" : "";
       updateBubbles(reaction.bubbles);
-      collectBtn.disabled = !gasKey;
+      setMethodsEnabled(!!gasKey);
     } else {
       reactionEl.textContent = "（この組み合わせの反応はまだ登録されていません）";
       gasProdEl.textContent = "";
       updateBubbles(false);
-      collectBtn.disabled = !gasKey;
+      setMethodsEnabled(!!gasKey);
     }
 
     let smellText = "";
@@ -1170,19 +1646,31 @@
     else if (property === "base") phEl.textContent = "アルカリ性";
     else phEl.textContent = "中性";
 
+    // 溶けている固体による水溶液の色（硫酸銅の青など）
+    let solutionColor = "rgba(220, 235, 245, 0.12)";
+    selectedSolids.forEach(s => {
+      if (SOLIDS[s].solutionColor) solutionColor = SOLIDS[s].solutionColor;
+    });
+
     if (!selectedIndicator) {
-      liquidEl.style.background = "rgba(220, 235, 245, 0.12)";
+      liquidEl.style.background = solutionColor;
       paperEl.classList.remove('show');
       hintEl.textContent = gasKey ? "気体を試験管に集めるか、加熱して蒸発させてみよう。" : "指示薬で色を見てみよう。";
       return;
     }
 
     const ind = INDICATORS[selectedIndicator];
-    if (selectedIndicator === "リトマス紙") {
-      liquidEl.style.background = "rgba(220, 235, 245, 0.12)";
-      paperEl.style.background = ind.colors[property];
+    if (ind.type === "paper") {
+      liquidEl.style.background = solutionColor;
+      // 上半分は元の紙の色、下半分（液に浸かる）は変色後の色
+      paperTopEl.style.background = ind.paperBase;
+      paperBottomEl.style.background = ind.paperBase; // まず元の色
       paperEl.classList.add('show');
-      hintEl.textContent = "リトマス紙 → " + ind.desc[property];
+      // 少し遅らせて、浸かった部分が変色するアニメーション
+      setTimeout(() => {
+        paperBottomEl.style.background = ind.colors[property];
+      }, 300);
+      hintEl.textContent = selectedIndicator + "を液にひたした → " + ind.desc[property];
     } else {
       liquidEl.style.background = ind.colors[property];
       paperEl.classList.remove('show');
@@ -1209,13 +1697,13 @@
     beakerEl.classList.remove('broken');
     paperEl.classList.remove('show');
     resetTestTube();
-    labelEl.textContent = "ビーカーが空です";
+    labelEl.textContent = "";
     phEl.textContent = ""; 
     recipeEl.textContent = "";
     gasProdEl.textContent = ""; 
     reactionEl.textContent = ""; 
     smellEl.textContent = "";
-    collectBtn.disabled = true;
+    setMethodsEnabled(false);
     hintEl.textContent = "まず液体をえらんでね。";
   };
 </script>
