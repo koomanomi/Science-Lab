@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>バネラボ｜のびと直列・並列</title>
+<style>
+  :root{
+    --bg:#14181c; --panel:#1d2329; --panel-edge:#2a323a; --grid-dot:#3a4450;
+    --text:#e8edf2; --text-dim:#8b97a3;
+    --spring:#b08be8; --spring-live:#caa6ff;
+    --weight:#9fb0c4; --weight-fill:#2f3946;
+    --bar:#d7a55a;
+    --accent:#ffb454; --ice:#6fd3ff; --danger:#ff6b6b; --good:#5ee6a0;
+    --force:#ff8a6b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:"Yu Gothic","Hiragino Sans","Noto Sans JP",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+  .topbar{display:flex;align-items:center;gap:14px;padding:14px 18px;background:var(--panel);border-bottom:1px solid var(--panel-edge);position:sticky;top:0;z-index:20}
+  .back-btn{display:flex;align-items:center;gap:6px;background:transparent;color:var(--text-dim);border:1px solid var(--panel-edge);border-radius:8px;padding:8px 12px;font-size:13px;cursor:pointer;text-decoration:none;transition:.15s}
+  .back-btn:hover{color:var(--text);border-color:var(--ice)}
+  .title-block{display:flex;flex-direction:column;line-height:1.2}
+  .title-block .label{font-size:11px;letter-spacing:.12em;color:var(--accent);font-weight:600}
+  .title-block h1{margin:0;font-size:18px;font-weight:700}
+  .spacer{flex:1}
+  .unit-badge{font-size:11px;color:var(--text-dim);border:1px solid var(--panel-edge);border-radius:999px;padding:4px 10px;white-space:nowrap}
+
+  .layout{display:grid;grid-template-columns:1fr;gap:16px;max-width:1100px;margin:0 auto;padding:16px}
+  @media(min-width:880px){.layout{grid-template-columns:1fr 300px;align-items:start}}
+
+  .board-card{background:var(--panel);border:1px solid var(--panel-edge);border-radius:16px;padding:14px;position:relative}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+  .tool-btn{display:flex;align-items:center;gap:8px;background:#161a1e;color:var(--text-dim);border:1px solid var(--panel-edge);border-radius:10px;padding:9px 13px;font-size:13px;cursor:pointer;transition:.12s}
+  .tool-btn svg{width:18px;height:18px;flex:none}
+  .tool-btn:hover{color:var(--text);border-color:#3a4450}
+  .tool-btn.active{color:#16110a;background:var(--accent);border-color:var(--accent);font-weight:700}
+  .tool-btn.danger.active{background:var(--danger);border-color:var(--danger);color:#1a0a0a}
+  .tool-divider{width:1px;background:var(--panel-edge);margin:4px 4px}
+
+  canvas{width:100%;display:block;touch-action:none;background:#11151a;border-radius:12px;cursor:crosshair}
+
+  .hint{margin-top:10px;font-size:12.5px;color:var(--text-dim);line-height:1.6}
+  .hint b{color:var(--text)}
+
+  .side{display:flex;flex-direction:column;gap:12px}
+  .card{background:var(--panel);border:1px solid var(--panel-edge);border-radius:16px;padding:16px}
+  .card h2{margin:0 0 10px 0;font-size:13px;letter-spacing:.08em;color:var(--text-dim);font-weight:700;text-transform:uppercase}
+  .readout-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px dashed var(--panel-edge)}
+  .readout-row:last-child{border-bottom:none}
+  .readout-row .k{font-size:13px;color:var(--text-dim)}
+  .readout-row .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+  .v.amber{color:var(--accent)} .v.purple{color:var(--spring-live)}
+
+  .slider-row{margin-top:10px}
+  .slider-row label{display:flex;justify-content:space-between;font-size:13px;color:var(--text-dim);margin-bottom:6px}
+  .slider-row label span{color:var(--accent);font-weight:700}
+  input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--panel-edge);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #1a1a1a}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #1a1a1a}
+
+  .status{font-size:13px;border-radius:10px;padding:10px 12px;line-height:1.5}
+  .status.ok{background:rgba(94,230,160,.08);color:var(--good);border:1px solid rgba(94,230,160,.25)}
+  .status.idle{background:rgba(139,151,163,.08);color:var(--text-dim);border:1px solid var(--panel-edge)}
+
+  .formula{background:#11151a;border:1px solid var(--panel-edge);border-radius:10px;padding:12px;font-size:13.5px;line-height:1.85;font-variant-numeric:tabular-nums}
+  .formula .hl{color:var(--accent);font-weight:700}
+  .formula .em{color:var(--spring-live);font-weight:700}
+  .spring-list{display:flex;flex-direction:column;gap:6px;font-size:13px}
+  .spring-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;cursor:pointer;border:1px solid transparent;transition:.12s}
+  .spring-row:hover{background:rgba(176,139,232,.08)}
+  .spring-row.sel{background:rgba(176,139,232,.16);border-color:var(--spring)}
+  .spring-row .name{display:flex;align-items:center;color:var(--text-dim)}
+  .spring-row .num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--spring);color:#1a1228;font-weight:800;font-size:11px;margin-right:8px;flex:none}
+  .spring-row.sel .name{color:var(--text)}
+  .spring-row .amt{font-variant-numeric:tabular-nums;font-weight:700;color:var(--text)}
+
+  .mini-del{border:1px solid var(--danger);color:var(--danger);background:#161a1e;border-radius:6px;padding:2px 7px;font-size:11px;cursor:pointer;float:right}
+  .reset-btn{width:100%;padding:10px;border-radius:10px;border:1px solid var(--panel-edge);background:#161a1e;color:var(--text-dim);font-size:13px;cursor:pointer;transition:.12s}
+  .reset-btn:hover{color:var(--danger);border-color:var(--danger)}
+  footer{text-align:center;color:var(--text-dim);font-size:11.5px;padding:24px 16px 32px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back-btn" href="index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    物理メニュー
+  </a>
+  <div class="title-block">
+    <div class="label">PHYSICS SANDBOX</div>
+    <h1>バネラボ — のびと直列・並列</h1>
+  </div>
+  <div class="spacer"></div>
+  <div class="unit-badge">直列・並列を自由に組める</div>
+</div>
+
+<div class="layout">
+  <div class="board-card">
+    <div class="toolbar">
+      <button class="tool-btn active" data-tool="spring">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2v3l-6 2 12 4-12 4 6 2v3"/></svg>
+        バネ
+      </button>
+      <button class="tool-btn" data-tool="weight">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4v4"/><rect x="6" y="8" width="12" height="11" rx="2"/></svg>
+        おもり
+      </button>
+      <button class="tool-btn" data-tool="bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="10" width="18" height="4" rx="2"/></svg>
+        れんけつ棒
+      </button>
+      <div class="tool-divider"></div>
+      <button class="tool-btn danger" data-tool="erase">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 19h14M7 19l1-12h8l1 12M10 7V5h4v2"/></svg>
+        消去
+      </button>
+      <div style="flex:1"></div>
+      <button class="tool-btn danger" id="clearAllBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+        全消去
+      </button>
+    </div>
+
+    <canvas id="board"></canvas>
+
+    <div class="hint">
+      道具をえらび、格子の<b>たての線（マスの間）をタップ</b>すると、そこにバネやおもりが付きます。<br>
+      上の天井からバネ→おもりとつなげば基本。バネの下にバネで<b>直列</b>、<b>れんけつ棒</b>を渡して上に2本のバネで<b>並列</b>。棒の<b>中央にはバネもおもりも</b>（道具を選んで棒の真ん中をタップ）何個でも縦に足せます。<br>
+      <b>おもりを下に引っぱって放す</b>と、バネがビヨンと元の位置にもどります。
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="card">
+      <h2>えらんだバネ・おもり</h2>
+      <div id="settingsWrap">
+        <p style="margin:0;font-size:13px;color:var(--text-dim);line-height:1.6">バネやおもりをタップで選ぶと、ここで強さ・重さを変えられます。</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>のびのけいさん</h2>
+      <div class="formula" id="formula">バネとおもりをつなぐと、ここに計算が出ます。</div>
+      <div class="spring-list" id="springList" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card">
+      <h2>ボード</h2>
+      <div id="status" class="status idle" style="margin-bottom:10px">道具をえらんで、たての線をタップ</div>
+      <button class="reset-btn" id="resetBtn">ぜんぶリセット</button>
+    </div>
+  </div>
+</div>
+
+<footer>バネラボ ドラフト v1.0 — タップ配置・伸びアニメーション</footer>
+
+<script>
+(function(){
+  // ===== グリッド =====
+  const COLS=7, ROWS=6;
+  const CELL=78, PAD=46;
+  const W=PAD*2+CELL*(COLS-1);
+  const H=PAD*2+CELL*(ROWS-1);
+  const PX_PER_CM=6.5; // 表示縮尺(1cm=6.5px)。自然長8cm≈52px、のびも素直に反映
+  const canvas=document.getElementById('board');
+  const ctx=canvas.getContext('2d');
+  let DPR=window.devicePixelRatio||1;
+
+  function resizeCanvas(){
+    DPR=window.devicePixelRatio||1;
+    const displayW=canvas.clientWidth||W;
+    const scale=displayW/W;
+    canvas.width=Math.round(W*scale*DPR);
+    canvas.height=Math.round(H*scale*DPR);
+    canvas.style.height=Math.round(H*scale)+'px';
+    ctx.setTransform(scale*DPR,0,0,scale*DPR,0,0);
+  }
+  function nodePos(c,r){return {x:PAD+c*CELL, y:PAD+r*CELL};}
+
+  // ===== モデル =====
+  // 縦の辺(c,r)-(c,r+1)にだけ部品を置ける(バネ・おもりは縦にぶら下がる)。
+  // 横の辺には「れんけつ棒」を置ける。
+  // vEdge key: "c:r"  (c列の r→r+1)
+  // hEdge key: "h:c:r"(r行の c→c+1)
+  // part: {type:'spring'|'weight', k,nat,mass}  edgeに紐づく
+  // bar:  横辺集合
+  const vparts=new Map();  // "c:r" -> {type,k,nat,mass,animLen}
+  const bars=new Map();    // "c:r" -> true  (r行 c→c+1 に棒)
+  const barWeights=new Map(); // "r:cStart:cEnd" -> {chain:[{type:'weight',mass}|{type:'spring',k,nat,animLen}, ...]}
+  // 棒の下にぶら下がる総重量(鎖の中のおもり合計。バネは軽い)
+  function barTotal(bw){
+    if(!bw||!bw.chain)return 0;
+    return bw.chain.reduce((s,it)=>s+(it.type==='weight'?it.mass:0),0);
+  }
+  // 旧データ(masses配列)を鎖形式へ移行
+  function normalizeBar(bw){
+    if(bw&&bw.masses&&!bw.chain){bw.chain=bw.masses.map(m=>({type:'weight',mass:m}));delete bw.masses;}
+    if(bw&&!bw.chain)bw.chain=[];
+    return bw;
+  }
+  // 鎖の index i のアイテムの「下にぶら下がる総おもり重量」
+  function chainLoadBelow(chain,i){
+    let s=0;for(let j=i+1;j<chain.length;j++){if(chain[j].type==='weight')s+=chain[j].mass;}return s;
+  }
+
+  let tool='spring';
+  let selectedKey=null;
+  let selectedBarW=null;
+
+  // ===== 物理 =====
+  // 各列を上から下へたどり、天井(r=0)からぶら下がる鎖を解く。
+  // 縦に連なる部品列 = 直列。途中のおもりの重さは下にあるバネにのみ効く(上には効かない、理想)。
+  // れんけつ棒: ある行で横に渡し、その行の複数列のバネ下端をまとめ、
+  //   棒の中央(代表列)から下へおもりをぶら下げる。重さは棒上のバネで均等配分。
+
+  // まず各縦辺の「下にぶら下がる総重量」を求める
+  function partAt(c,r){return vparts.get(c+":"+r);}
+  function isBarRow(c,r){ // (c,r)-(c+1,r)に棒があるか、その行に棒群があるか
+    return bars.has(c+":"+r);
+  }
+
+  // 列ごとに、ある行rの下にぶら下がる総おもり重量(その列で下方向)
+  function loadBelowInColumn(c,r){
+    let sum=0;
+    for(let rr=r; rr<ROWS-1; rr++){
+      const p=partAt(c,rr);
+      if(p && p.type==='weight') sum+=p.mass;
+    }
+    return sum;
+  }
+
+  // 並列グループ:同じ行に連続して置かれた棒。棒がつなぐ列範囲を求める
+  function barGroups(){
+    // 各行について、連続する棒辺をまとめる
+    const groups=[];
+    for(let r=0;r<ROWS;r++){
+      let cStart=null;
+      for(let c=0;c<COLS;c++){
+        const has=bars.has(c+":"+r);
+        if(has && cStart===null)cStart=c;
+        if((!has||c===COLS-1)&&cStart!==null){
+          const cEnd=has?c+1:c; // 棒の右端列
+          groups.push({r,cStart,cEnd});
+          cStart=null;
+        }
+      }
+    }
+    return groups;
+  }
+
+  // 各バネにかかる荷重を計算
+  function computeLoads(){
+    const load={}; // "c:r" -> g
+    // 1) 棒のない単純列:そのバネの下(同じ列)のおもり合計
+    for(const [key,p] of vparts){
+      if(p.type!=='spring')continue;
+      const [c,r]=key.split(":").map(Number);
+      load[key]=loadBelowInColumn(c, r+1);
+    }
+    // 2) 並列(れんけつ棒):棒の上にある各列のバネに、棒からぶら下げたおもりの重さを均等配分
+    barGroups().forEach(g=>{
+      const supporters=[];
+      for(let c=g.cStart;c<=g.cEnd;c++){
+        const sp=partAt(c,g.r-1);
+        if(sp&&sp.type==='spring')supporters.push(c+":"+(g.r-1));
+      }
+      const bw=barWeights.get(g.r+":"+g.cStart+":"+g.cEnd);
+      const total=barTotal(bw);
+      if(supporters.length>0){
+        const share=total/supporters.length;
+        supporters.forEach(k=>load[k]=share);
+      }
+    });
+    // 3) 直列の上方伝播:下のバネにかかる荷重は、その真上のバネにもそのまま伝わる
+    //    (massless spring。下のバネ+その下の全部を、上のバネも支える)。多段対応で反復。
+    let changed=true,guard=0;
+    while(changed && guard++<ROWS+2){
+      changed=false;
+      for(let c=0;c<COLS;c++){
+        for(let r=ROWS-2;r>=1;r--){
+          const here=partAt(c,r), above=partAt(c,r-1);
+          if(here&&here.type==='spring'&&above&&above.type==='spring'){
+            const target=load[c+":"+r]||0;
+            if((load[c+":"+(r-1)]||0)!==target){load[c+":"+(r-1)]=target;changed=true;}
+          }
+        }
+      }
+    }
+    return load;
+  }
+
+  // ===== 配置(タップ) =====
+  function getLogicalPoint(evt){
+    const rect=canvas.getBoundingClientRect();
+    const cx=(evt.touches?evt.touches[0].clientX:evt.clientX);
+    const cy=(evt.touches?evt.touches[0].clientY:evt.clientY);
+    const scale=W/rect.width;
+    return {x:(cx-rect.left)*scale, y:(cy-rect.top)*scale};
+  }
+  // 最寄りの「縦辺」または「横辺」を探す
+  function nearestEdge(pt){
+    let best=null,bestD=30;
+    // 縦辺
+    for(let c=0;c<COLS;c++)for(let r=0;r<ROWS-1;r++){
+      const a=nodePos(c,r),b=nodePos(c,r+1);
+      const d=distToSeg(pt,a,b);
+      if(d<bestD){bestD=d;best={kind:'v',key:c+":"+r,c,r};}
+    }
+    // 横辺
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS-1;c++){
+      const a=nodePos(c,r),b=nodePos(c+1,r);
+      const d=distToSeg(pt,a,b);
+      if(d<bestD){bestD=d;best={kind:'h',key:c+":"+r,c,r};}
+    }
+    return best;
+  }
+  function distToSeg(p,a,b){
+    const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy;
+    let t=l2>0?((p.x-a.x)*dx+(p.y-a.y)*dy)/l2:0;t=Math.max(0,Math.min(1,t));
+    return Math.hypot(p.x-(a.x+t*dx),p.y-(a.y+t*dy));
+  }
+
+  // 棒グループの実際の描画y(上のバネ下端の最長に合わせる。drawBarsと同じ計算)
+  function barDrawY(g){
+    let barY=nodePos(g.cStart,g.r).y;
+    let maxBot=null;
+    for(let c=g.cStart;c<=g.cEnd;c++){
+      const sp=partAt(c,g.r-1);
+      if(sp&&sp.type==='spring'){
+        const len=sp.nat+Math.max(0,sp.animLen);
+        const top=topYOf(c,g.r-1);
+        const bot=top+Math.max(12,len*PX_PER_CM);
+        if(maxBot===null||bot>maxBot)maxBot=bot;
+      }
+    }
+    if(maxBot!==null)barY=maxBot;
+    return barY;
+  }
+
+  // 棒の中央の「ぶら下げ点」付近か判定。該当グループを返す
+  function barCenterHit(pt){
+    for(const g of barGroups()){
+      const a=nodePos(g.cStart,g.r), b=nodePos(g.cEnd,g.r);
+      const cx=(a.x+b.x)/2, cy=barDrawY(g);
+      // 中央から下に伸びるヒモ＋おもりのあたり(縦に長め)
+      if(Math.abs(pt.x-cx)<30 && pt.y>cy-4 && pt.y<cy+CELL*1.0){
+        return g;
+      }
+    }
+    return null;
+  }
+
+  // 棒の本体(横棒)付近か判定。該当グループを返す
+  function barBodyHit(pt){
+    for(const g of barGroups()){
+      const a=nodePos(g.cStart,g.r), b=nodePos(g.cEnd,g.r);
+      const by=barDrawY(g);
+      if(pt.x>a.x-10 && pt.x<b.x+10 && Math.abs(pt.y-by)<14){
+        return g;
+      }
+    }
+    return null;
+  }
+
+  // 縦のおもりの箱に当たったか(描画位置ベース)。該当キーを返す
+  function vWeightHit(pt){
+    for(const [key,p] of vparts){
+      if(p.type!=='weight')continue;
+      const [c,r]=key.split(":").map(Number);
+      const a=nodePos(c,r);
+      const anchorY=topYOf(c,r);
+      const boxW=Math.min(46,30+p.mass*0.03), boxH=Math.min(40,24+p.mass*0.03);
+      const topY=anchorY+6, botY=topY+boxH;
+      if(Math.abs(pt.x-a.x)<boxW/2+6 && pt.y>topY-4 && pt.y<botY+4)return key;
+    }
+    return null;
+  }
+
+  // おもりの上に縦に連なるバネを、途切れるまで全部集める(直列の鎖全体)
+  function springsAboveWeight(c,r){
+    const keys=[];
+    let rr=r-1;
+    while(rr>=0){
+      const p=partAt(c,rr);
+      if(p&&p.type==='spring'){keys.push(c+":"+rr);rr--;}
+      else break;
+    }
+    return keys;
+  }
+
+  // ===== おもりドラッグ(引っ張って放すと戻る) =====
+  let dragState=null; // {mode, springKeys:[], moved:false}
+
+  function handlePick(evt){
+    evt.preventDefault();
+    const pt=getLogicalPoint(evt);
+
+    // ===== 消去ツール:棒のおもり→棒本体→縦の部品 の順に判定 =====
+    if(tool==='erase'){
+      const bgW=barCenterHit(pt);
+      if(bgW){
+        const k=bgW.r+":"+bgW.cStart+":"+bgW.cEnd;
+        if(barWeights.has(k)){barWeights.delete(k);if(selectedBarW===k)selectedBarW=null;setStatus('棒のおもりを消した');renderSettings();return;}
+      }
+      const bgBody=barBodyHit(pt);
+      if(bgBody){
+        for(let c=bgBody.cStart;c<bgBody.cEnd;c++)bars.delete(c+":"+bgBody.r);
+        const k=bgBody.r+":"+bgBody.cStart+":"+bgBody.cEnd;
+        if(barWeights.has(k)){barWeights.delete(k);if(selectedBarW===k)selectedBarW=null;}
+        setStatus('れんけつ棒を消した');renderSettings();return;
+      }
+      const hitE=nearestEdge(pt);
+      if(hitE){
+        if(hitE.kind==='v'){vparts.delete(hitE.key);if(selectedKey===hitE.key)selectedKey=null;}
+        else bars.delete(hitE.key);
+        setStatus('消したよ');renderSettings();return;
+      }
+      return;
+    }
+
+    // ===== おもりを引っ張るドラッグ開始(消去以外のとき) =====
+    // 既存の縦おもりに触れたらドラッグ開始(放すと戻る)
+    const vwKey=vWeightHit(pt);
+    if(vwKey){
+      const [c,r]=vwKey.split(":").map(Number);
+      const springKeys=springsAboveWeight(c,r);
+      startDrag({mode:'vweight', weightKey:vwKey, springKeys, c, r}, pt);
+      return;
+    }
+    // 棒の中央:weight/springツールなら鎖に追加(最優先)
+    {
+      const bgW=barCenterHit(pt);
+      if(bgW && (tool==='weight'||tool==='spring')){
+        const k=bgW.r+":"+bgW.cStart+":"+bgW.cEnd;
+        let bw=barWeights.get(k);
+        if(!bw){bw={chain:[]};barWeights.set(k,bw);}
+        normalizeBar(bw);
+        if(tool==='weight')bw.chain.push({type:'weight',mass:200});
+        else bw.chain.push({type:'spring',k:2,nat:8,animLen:0});
+        selectedBarW=k;selectedKey=null;renderSettings();
+        setStatus(tool==='weight'?'棒の下におもりを足した':'棒の下にバネを足した','ok');return;
+      }
+    }
+    // 棒の中央の鎖「箱/バネ」に触れたら、どのツールでもドラッグ開始
+    const bgDrag=barCenterHit(pt);
+    if(bgDrag){
+      const k=bgDrag.r+":"+bgDrag.cStart+":"+bgDrag.cEnd;
+      const bw=barWeights.get(k);
+      if(bw && bw._box){
+        const bx=bw._box;
+        const onBox=(Math.abs(pt.x-bx.cx)<bx.boxW/2+8 && pt.y>bx.topY-6 && pt.y<bx.botY+8);
+        if(onBox){
+          const springKeys=[];
+          for(let cc=bgDrag.cStart;cc<=bgDrag.cEnd;cc++){const sp=partAt(cc,bgDrag.r-1);if(sp&&sp.type==='spring')springKeys.push(cc+":"+(bgDrag.r-1));}
+          startDrag({mode:'barweight', barKey:k, group:bgDrag, springKeys}, pt);
+          return;
+        }
+      }
+    }
+
+    const hit=nearestEdge(pt);
+    if(!hit)return;
+
+    if(tool==='bar'){
+      if(hit.kind!=='h'){setStatus('れんけつ棒は「よこの線」に置けるよ');return;}
+      bars.set(hit.key,true);setStatus('れんけつ棒を置いた。上にバネ2本・中央におもりで並列に！','ok');return;
+    }
+    if(hit.kind!=='v'){setStatus(tool==='spring'?'バネは「たての線」に置けるよ':'おもりは「たての線」か「棒の中央」に置けるよ');return;}
+    const existing=vparts.get(hit.key);
+    if(tool==='spring'){
+      if(existing&&existing.type==='spring'){selectedKey=hit.key;selectedBarW=null;renderSettings();setStatus('このバネを選んだ');return;}
+      vparts.set(hit.key,{type:'spring',k:2,nat:8,animLen:0});
+      selectedKey=hit.key;selectedBarW=null;setStatus('バネを置いた','ok');
+    }else{
+      if(existing&&existing.type==='weight'){selectedKey=hit.key;selectedBarW=null;renderSettings();setStatus('このおもりを選んだ');return;}
+      vparts.set(hit.key,{type:'weight',mass:200});
+      selectedKey=hit.key;selectedBarW=null;setStatus('おもりを置いた','ok');
+    }
+    renderSettings();
+  }
+
+  // ドラッグ開始:指/マウスの移動を追って、対象バネを引っ張る
+  function startDrag(info, startPt){
+    dragState={...info, moved:false, pointerY:startPt.y};
+    window.addEventListener('mousemove',onDragMove);
+    window.addEventListener('touchmove',onDragMove,{passive:false});
+    window.addEventListener('mouseup',onDragEnd);
+    window.addEventListener('touchend',onDragEnd);
+  }
+  function onDragMove(evt){
+    if(!dragState)return;
+    evt.preventDefault();
+    const pt=getLogicalPoint(evt);
+    dragState.moved=true;
+    dragState.pointerY=pt.y;
+  }
+  function onDragEnd(){
+    if(!dragState)return;
+    const wasDrag=dragState;
+    // 放す:引っ張った分だけ戻ろうとする。velに上向き(縮む=マイナス)の初速を与えてビヨンと戻す
+    (wasDrag.springKeys||[wasDrag.springKey]).filter(Boolean).forEach(k=>{
+      const sp=vparts.get(k);
+      if(sp){
+        // 引っ張りすぎ量に応じた戻り初速(マイナス=縮む方向)。大きく引くほど勢いよく戻る
+        sp.vel=-Math.min(3.2, Math.abs(sp.animLen)*0.12+0.6);
+        sp.flash=1;
+      }
+    });
+    if(!wasDrag.moved){
+      if(wasDrag.mode==='vweight'){selectedKey=wasDrag.weightKey;selectedBarW=null;renderSettings();setStatus('このおもりを選んだ');}
+      else if(wasDrag.mode==='barweight'){selectedBarW=wasDrag.barKey;selectedKey=null;renderSettings();setStatus('棒のおもりを選んだ');}
+    }else{
+      setStatus('放した！バネが元にもどる');
+    }
+    dragState=null;
+    window.removeEventListener('mousemove',onDragMove);
+    window.removeEventListener('touchmove',onDragMove);
+    window.removeEventListener('mouseup',onDragEnd);
+    window.removeEventListener('touchend',onDragEnd);
+  }
+  canvas.addEventListener('mousedown',handlePick);
+  canvas.addEventListener('touchstart',handlePick,{passive:false});
+
+  // ===== ツールバー =====
+  document.querySelectorAll('.tool-btn').forEach(btn=>{
+    if(!btn.dataset.tool)return;
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tool-btn').forEach(b=>{if(b.dataset.tool)b.classList.remove('active');});
+      btn.classList.add('active');tool=btn.dataset.tool;
+      const m={spring:'たての線をタップでバネ',weight:'たての線をタップでおもり',bar:'よこの線をタップでれんけつ棒',erase:'消したい部品の線をタップ'}[tool];
+      setStatus(m);
+    });
+  });
+  document.getElementById('clearAllBtn').addEventListener('click',()=>{vparts.clear();bars.clear();barWeights.clear();selectedKey=null;selectedBarW=null;renderSettings();setStatus('ぜんぶ消した');});
+  document.getElementById('resetBtn').addEventListener('click',()=>{vparts.clear();bars.clear();barWeights.clear();selectedKey=null;selectedBarW=null;seed();renderSettings();setStatus('リセットした');});
+
+  function setStatus(text,kind){const s=document.getElementById('status');s.textContent=text;s.className='status '+(kind==='ok'?'ok':'idle');}
+
+  // ===== 設定パネル =====
+  function renderSettings(){
+    const wrap=document.getElementById('settingsWrap');
+    // 棒の中央の鎖(バネ/おもり混在)を選んでいる場合
+    if(selectedBarW && barWeights.has(selectedBarW)){
+      const bw=barWeights.get(selectedBarW);normalizeBar(bw);
+      let html=`<div style="font-size:12px;color:var(--text-dim);margin-bottom:8px">棒の下のぶら下げ（おもり合計 <b style="color:var(--accent)">${barTotal(bw)}g</b>）</div>`;
+      bw.chain.forEach((it,i)=>{
+        if(it.type==='weight'){
+          html+=`<div class="slider-row"><label>${i+1}: おもり <span id="cv${i}">${it.mass}g</span> <button data-del="${i}" class="mini-del">消す</button></label>`+
+            `<input type="range" min="20" max="800" step="5" value="${it.mass}" id="cs${i}"></div>`;
+        }else{
+          html+=`<div class="slider-row"><label>${i+1}: バネ <span id="cv${i}">100gで${it.k.toFixed(1)}cm</span> <button data-del="${i}" class="mini-del">消す</button></label>`+
+            `<input type="range" min="0.5" max="5" step="0.1" value="${it.k}" id="cs${i}" style="direction:rtl"></div>`;
+        }
+      });
+      html+=`<div style="display:flex;gap:8px;margin-top:8px">`+
+        `<button id="addCW" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--steel);background:#161a1e;color:var(--text);font-size:13px;cursor:pointer">＋おもり</button>`+
+        `<button id="addCS" style="flex:1;padding:9px;border-radius:8px;border:1px solid var(--spring);background:#161a1e;color:var(--spring-live);font-size:13px;cursor:pointer">＋バネ</button></div>`;
+      wrap.innerHTML=html;
+      bw.chain.forEach((it,i)=>{
+        const s=document.getElementById('cs'+i),v=document.getElementById('cv'+i);
+        if(!s)return;
+        s.addEventListener('input',e=>{
+          if(it.type==='weight'){it.mass=+e.target.value;v.textContent=it.mass+'g';}
+          else{it.k=+e.target.value;v.textContent='100gで'+it.k.toFixed(1)+'cm';}
+          const tot=wrap.querySelector('b');if(tot)tot.textContent=barTotal(bw)+'g';
+        });
+      });
+      wrap.querySelectorAll('[data-del]').forEach(btn=>{
+        btn.addEventListener('click',()=>{const idx=+btn.dataset.del;bw.chain.splice(idx,1);if(bw.chain.length===0){barWeights.delete(selectedBarW);selectedBarW=null;}renderSettings();});
+      });
+      document.getElementById('addCW').addEventListener('click',()=>{bw.chain.push({type:'weight',mass:200});renderSettings();});
+      document.getElementById('addCS').addEventListener('click',()=>{bw.chain.push({type:'spring',k:2,nat:8,animLen:0});renderSettings();});
+      return;
+    }
+    const p=selectedKey?vparts.get(selectedKey):null;
+    if(!p){wrap.innerHTML='<p style="margin:0;font-size:13px;color:var(--text-dim);line-height:1.6">バネやおもりをタップで選ぶと、ここで強さ・重さを変えられます。</p>';return;}
+    if(p.type==='spring'){
+      wrap.innerHTML=
+        `<div class="slider-row"><label>バネの強さ <span id="vK">100gで${p.k.toFixed(1)}cm のびる</span></label>`+
+        `<input type="range" min="0.5" max="5" step="0.1" value="${p.k}" id="sK" style="direction:rtl">`+
+        `<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin-top:3px"><span>やわらかい（よく伸びる）</span><span>強い（伸びにくい）</span></div></div>`+
+        `<div class="slider-row"><label>自然長 <span id="vNat">${p.nat.toFixed(1)}cm</span></label><input type="range" min="4" max="14" step="0.1" value="${p.nat}" id="sNat"></div>`;
+      const sK=document.getElementById('sK'),vK=document.getElementById('vK');
+      sK.addEventListener('input',e=>{p.k=+e.target.value;vK.textContent='100gで'+p.k.toFixed(1)+'cm のびる';});
+      const sNat=document.getElementById('sNat'),vNat=document.getElementById('vNat');
+      sNat.addEventListener('input',e=>{p.nat=+e.target.value;vNat.textContent=p.nat.toFixed(1)+'cm';});
+    }else{
+      wrap.innerHTML=`<div class="slider-row"><label>おもりの重さ <span id="vM">${p.mass}g</span></label><input type="range" min="20" max="600" step="5" value="${p.mass}" id="sM"></div>`;
+      const sM=document.getElementById('sM'),vM=document.getElementById('vM');
+      sM.addEventListener('input',e=>{p.mass=+e.target.value;vM.textContent=p.mass+'g';});
+    }
+  }
+
+  // ===== 解説 =====
+  // 毎フレームDOMを作り直すと重く、クリックも奪うので、
+  // 構成(バネ集合・選択)が変わったときだけ作り直し、毎フレームは数値だけ更新する。
+  let explainSig="";
+  function springListSorted(){
+    const springs=[];
+    for(const [key,p] of vparts){if(p.type==='spring')springs.push({key,p});}
+    springs.sort((a,b)=>{const [ca,ra]=a.key.split(":").map(Number),[cb,rb]=b.key.split(":").map(Number);return ra-rb||ca-cb;});
+    return springs;
+  }
+  function rebuildList(springs){
+    const list=document.getElementById('springList');
+    list.innerHTML='';
+    springs.forEach(s=>{
+      const row=document.createElement('div');
+      row.className='spring-row'+(selectedKey===s.key?' sel':'');
+      row.dataset.key=s.key;
+      row.innerHTML=`<span class="name"><span class="num">${springNum[s.key]}</span>バネ${springNum[s.key]}</span><span class="amt" data-amt>—</span>`;
+      row.addEventListener('click',()=>{selectedKey=s.key;selectedBarW=null;renderSettings();setStatus('バネ'+springNum[s.key]+'を選んだ');refreshExplainStructure(true);});
+      list.appendChild(row);
+    });
+  }
+  function refreshExplainStructure(force){
+    const springs=springListSorted();
+    // 構成シグネチャ(キー列・番号・選択)が変わったときだけ作り直す
+    const sig=springs.map(s=>s.key+'#'+springNum[s.key]).join(',')+'|'+selectedKey;
+    if(force||sig!==explainSig){explainSig=sig;rebuildList(springs);}
+    return springs;
+  }
+  function updateExplain(load){
+    const springs=refreshExplainStructure(false);
+    const f=document.getElementById('formula');
+    if(springs.length===0){f.innerHTML='バネとおもりをつなぐと、ここに計算が出ます。';return;}
+
+    // 計算式:選択中のバネ優先、なければ最初の荷重ありバネ
+    const connected=springs.filter(s=>(load[s.key]||0)>0);
+    let focus=null;
+    if(selectedKey&&vparts.get(selectedKey)&&vparts.get(selectedKey).type==='spring')focus=springs.find(s=>s.key===selectedKey);
+    if(!focus)focus=connected[0];
+    if(!focus){f.innerHTML='<span class="em">まだおもりがかかっていません。</span>バネの下におもりを置いてみよう。';}
+    else{
+      const s=focus;const ld=load[s.key]||0;const st=ld/100*s.p.k;
+      const [c,r]=s.key.split(":").map(Number);
+      const parallel=barGroups().some(g=>g.r===r+1 && c>=g.cStart && c<=g.cEnd);
+      f.innerHTML=
+        `<div style="margin-bottom:6px"><span class="em">バネ${springNum[s.key]}</span> について`+(parallel?'（並列：重さを棒の上のバネで分け合う）':'')+`</div>`+
+        `<div>1本のバネは <span class="em">100gで${s.p.k.toFixed(1)}cm</span> のびる</div>`+
+        `<div style="margin-top:6px">のび ＝ ${ld.toFixed(0)} ÷ 100 × ${s.p.k.toFixed(1)} ＝ <span class="hl">${st.toFixed(1)}cm</span></div>`+
+        `<div style="margin-top:4px">全長 ＝ ${s.p.nat} ＋ ${st.toFixed(1)} ＝ <span class="hl">${(s.p.nat+st).toFixed(1)}cm</span></div>`;
+    }
+    // 既存の行に数値だけ書き込む(DOMは作り直さない)
+    const list=document.getElementById('springList');
+    springs.forEach(s=>{
+      const ld=load[s.key]||0;const st=ld/100*s.p.k;
+      const row=list.querySelector('.spring-row[data-key="'+s.key+'"]');
+      if(row){
+        const amt=row.querySelector('[data-amt]');
+        if(amt)amt.textContent=`${ld.toFixed(0)}g ／ のび ${st.toFixed(1)}cm`;
+        row.classList.toggle('sel',selectedKey===s.key);
+      }
+    });
+  }
+
+  // ===== 描画 =====
+  function drawGridDots(){
+    ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--grid-dot');
+    for(let c=0;c<COLS;c++)for(let r=0;r<ROWS;r++){const p=nodePos(c,r);ctx.beginPath();ctx.arc(p.x,p.y,2.5,0,Math.PI*2);ctx.fill();}
+  }
+  function drawCeiling(){
+    ctx.save();
+    ctx.fillStyle='#3b3326';ctx.fillRect(0,PAD-18,W,18);
+    ctx.strokeStyle='#5a4d38';ctx.lineWidth=2;
+    for(let x=6;x<W;x+=20){ctx.beginPath();ctx.moveTo(x,PAD-18);ctx.lineTo(x+10,PAD);ctx.stroke();}
+    ctx.fillStyle='#1a1f25';ctx.fillRect(0,PAD-2,W,3);
+    ctx.restore();
+  }
+  // 空き辺をうっすら(置ける場所のヒント)
+  function drawEmptyHints(){
+    ctx.save();ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=6;ctx.lineCap='round';
+    for(let c=0;c<COLS;c++)for(let r=0;r<ROWS-1;r++){
+      if(vparts.has(c+":"+r))continue;
+      const a=nodePos(c,r),b=nodePos(c,r+1);
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawSpring(c,r,p,load){
+    const a=nodePos(c,r);
+    const stretch=Math.max(0,p.animLen);
+    const len=p.nat+stretch;
+    const topY=topYOf(c,r);
+    const px=Math.max(12, len*PX_PER_CM); // 計算値どおり(クリップしない)
+    const botY=topY+px;
+    const selected=(selectedKey===(c+":"+r));
+    const flash=p.flash||0;
+    ctx.save();
+    // 発光ハロー(伸び縮みの瞬間に光る)
+    if(flash>0.02){
+      const midY=(topY+botY)/2;
+      const glowR=14+flash*30;
+      const grad=ctx.createRadialGradient(a.x,midY,2,a.x,midY,glowR);
+      grad.addColorStop(0,`rgba(202,166,255,${0.45*flash})`);
+      grad.addColorStop(1,'rgba(202,166,255,0)');
+      ctx.fillStyle=grad;
+      ctx.fillRect(a.x-glowR,topY-glowR*0.3,glowR*2,(botY-topY)+glowR*0.6);
+    }
+    // バネ本体(光ると明るい色に)
+    const baseCol=selected?'#caa6ff':(load>0?'#b89bf0':'#9f7cd8');
+    const litCol=`rgb(${Math.round(176+60*flash)},${Math.round(139+70*flash)},${Math.round(232+23*flash)})`;
+    ctx.strokeStyle=flash>0.05?litCol:baseCol;
+    ctx.lineWidth=3+flash*1.5;ctx.lineCap='round';ctx.lineJoin='round';
+    if(flash>0.05){ctx.shadowColor='rgba(202,166,255,0.9)';ctx.shadowBlur=8*flash;}
+    const coils=6,w=11,h=botY-topY,seg=h/(coils*2);
+    ctx.beginPath();ctx.moveTo(a.x,topY);ctx.lineTo(a.x,topY+seg*0.6);
+    for(let i=0;i<coils;i++){const y0=topY+seg*0.6+i*2*seg;ctx.lineTo(a.x-w,y0+seg);ctx.lineTo(a.x+w,y0+seg*2);}
+    ctx.lineTo(a.x,topY+h-seg*0.6);ctx.lineTo(a.x,botY);
+    ctx.stroke();
+    ctx.shadowBlur=0;
+    // 全長ラベル(右側)
+    ctx.fillStyle=selected?'#caa6ff':'#8b97a3';ctx.font='10.5px sans-serif';ctx.textAlign='left';
+    ctx.fillText(len.toFixed(1)+'cm', a.x+15, (topY+botY)/2);
+    // 番号バッジ(左上)。一覧の番号と一致
+    const num=springNum[c+":"+r];
+    if(num){
+      const bx=a.x-17, by=topY+8, br=9;
+      ctx.beginPath();ctx.arc(bx,by,br,0,Math.PI*2);
+      ctx.fillStyle=selected?'#caa6ff':'#7a5fb0';ctx.fill();
+      if(selected){ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.stroke();}
+      ctx.fillStyle=selected?'#1a1228':'#f0e9ff';ctx.font='bold 11px sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(num, bx, by+0.5);
+      ctx.textBaseline='alphabetic';
+    }
+    ctx.restore();
+    return botY;
+  }
+  function drawWeight(c,r,p){
+    const a=nodePos(c,r);
+    const anchorY=topYOf(c,r); // 上のバネ下端(または天井)
+    const boxW=Math.min(46, 30+p.mass*0.03), boxH=Math.min(40,24+p.mass*0.03);
+    const topY=anchorY+6, botY=topY+boxH;
+    const selected=(selectedKey===(c+":"+r));
+    ctx.save();
+    // ひも
+    ctx.strokeStyle='#9fb0c4';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(a.x,anchorY);ctx.lineTo(a.x,topY);ctx.stroke();
+    // 箱
+    ctx.fillStyle=selected?'#3a4655':'#2f3946';
+    roundRect(a.x-boxW/2,topY,boxW,boxH,5);ctx.fill();
+    ctx.strokeStyle=selected?'#6fd3ff':'#4a5663';ctx.lineWidth=1.5;
+    roundRect(a.x-boxW/2,topY,boxW,boxH,5);ctx.stroke();
+    ctx.fillStyle='#e8edf2';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(p.mass+'g',a.x,topY+boxH/2);
+    ctx.textBaseline='alphabetic';
+    ctx.restore();
+    return botY;
+  }
+  function drawBars(){
+    barGroups().forEach(g=>{
+      // 棒の上のバネ下端(最長)に合わせて棒のy位置を決める
+      const barY=barDrawY(g);
+      const a=nodePos(g.cStart,g.r),b=nodePos(g.cEnd,g.r);
+      ctx.save();
+      // 棒
+      ctx.fillStyle='#d7a55a';
+      roundRect(a.x-6,barY-4,(b.x-a.x)+12,8,4);ctx.fill();
+      // 上のバネ下端と棒の接合ピン
+      ctx.fillStyle='#5d4690';
+      for(let c=g.cStart;c<=g.cEnd;c++){
+        const sp=partAt(c,g.r-1);
+        if(sp&&sp.type==='spring'){const px=nodePos(c,g.r-1).x;ctx.beginPath();ctx.arc(px,barY,3.5,0,Math.PI*2);ctx.fill();}
+      }
+      // 中央からヒモ＋おもり(縦に何個も重ねる)
+      const bgKey=g.r+":"+g.cStart+":"+g.cEnd;
+      const bw=barWeights.get(bgKey);
+      const cx=(a.x+b.x)/2;
+      normalizeBar(bw);
+      if(bw && bw.chain && bw.chain.length>0){
+        const sel=(selectedBarW===bgKey);
+        const firstTop=barY+4+18;
+        ctx.strokeStyle='#9fb0c4';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,barY+4);ctx.lineTo(cx,firstTop);ctx.stroke();
+        let y=firstTop, maxW=0;
+        bw.chain.forEach((it,i)=>{
+          if(it.type==='weight'){
+            const m=it.mass;const boxW=Math.min(48,32+m*0.028), boxH=Math.min(42,26+m*0.028);
+            maxW=Math.max(maxW,boxW);
+            ctx.fillStyle=sel?'#3a4655':'#2f3946';roundRect(cx-boxW/2,y,boxW,boxH,5);ctx.fill();
+            ctx.strokeStyle=sel?'#6fd3ff':'#4a5663';ctx.lineWidth=1.5;roundRect(cx-boxW/2,y,boxW,boxH,5);ctx.stroke();
+            ctx.fillStyle='#e8edf2';ctx.font='bold 12px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+            ctx.fillText(m+'g',cx,y+boxH/2);ctx.textBaseline='alphabetic';
+            y+=boxH;
+          }else{ // spring
+            const ld=chainLoadBelow(bw.chain,i);
+            const stretch=(it.animLen!=null)?Math.max(0,it.animLen):0;
+            const len=it.nat+stretch;
+            const h=Math.max(12,len*PX_PER_CM);
+            maxW=Math.max(maxW,30);
+            // バネ(ジグザグ)
+            const coils=6,w=10,seg=h/(coils*2);
+            ctx.strokeStyle=sel?'#caa6ff':'#9f7cd8';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';
+            ctx.beginPath();ctx.moveTo(cx,y);ctx.lineTo(cx,y+seg*0.6);
+            for(let q=0;q<coils;q++){const y0=y+seg*0.6+q*2*seg;ctx.lineTo(cx-w,y0+seg);ctx.lineTo(cx+w,y0+seg*2);}
+            ctx.lineTo(cx,y+h-seg*0.6);ctx.lineTo(cx,y+h);ctx.stroke();
+            ctx.fillStyle=sel?'#caa6ff':'#8b97a3';ctx.font='10px sans-serif';ctx.textAlign='left';
+            ctx.fillText(len.toFixed(1)+'cm', cx+16, y+h/2);
+            y+=h;
+          }
+          // 次のアイテムへの細い連結
+          if(i<bw.chain.length-1){ctx.strokeStyle='#9fb0c4';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,y);ctx.lineTo(cx,y+5);ctx.stroke();y+=5;}
+        });
+        if(barTotal(bw)>0 && bw.chain.filter(it=>it.type==='weight').length>1){
+          ctx.fillStyle='#ffb454';ctx.font='bold 11px sans-serif';ctx.textAlign='left';
+          ctx.fillText('合計'+barTotal(bw)+'g', cx+maxW/2+8, firstTop+12);
+        }
+        bw._box={cx, topY:firstTop, botY:y, boxW:Math.max(maxW,40), boxH:y-firstTop, barY};
+      }else{
+        ctx.fillStyle='rgba(255,180,84,0.5)';ctx.font='11px sans-serif';ctx.textAlign='center';
+        ctx.fillText('＋バネ/おもり', cx, barY+26);
+      }
+      ctx.restore();
+    });
+  }
+  function roundRect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+  // ===== アニメーション(バネ振動 + 発光) =====
+  function tickAnim(load){
+    // ドラッグ中の対象バネ:指の位置まで引き伸ばす(直列の鎖全体で分担)
+    let dragSprings=new Set();
+    if(dragState && dragState.moved){
+      const keys=(dragState.springKeys||[dragState.springKey]).filter(Boolean);
+      keys.forEach(k=>dragSprings.add(k));
+      if(keys.length>0){
+        // 鎖のいちばん上のバネの上端から指までを、全長として配分する。
+        // 列内で keys は下→上の順(springsAboveWeightの順)なので、最上端を求める
+        let topMostKey=keys[0], topMostY=Infinity;
+        keys.forEach(k=>{const [c,r]=k.split(":").map(Number);const ty=topYOf(c,r);if(ty<topMostY){topMostY=ty;topMostKey=k;}});
+        // 指まで届く「全体ののび合計(cm)」を求める。各バネの自然長は差し引く
+        const totalNat=keys.reduce((s,k)=>s+(vparts.get(k).nat||0),0);
+        let totalLenCm=(dragState.pointerY-topMostY)/PX_PER_CM;
+        let totalStretch=totalLenCm-totalNat;
+        // 本来の荷重ぶん(各バネtargetの合計)より下にだけ引ける
+        const baseTotal=keys.reduce((s,k)=>{const sp=vparts.get(k);return s+(load[k]||0)/100*sp.k;},0);
+        totalStretch=Math.max(baseTotal, Math.min(totalStretch, 120));
+        // 共通の力Fで配分:stretch_i ∝ k_i (cm/100g)。Σ(F*k_i)=totalStretch → F=totalStretch/Σk_i
+        const sumK=keys.reduce((s,k)=>s+(vparts.get(k).k||0),0)||1;
+        const F=totalStretch/sumK;
+        keys.forEach(k=>{
+          const sp=vparts.get(k);if(!sp)return;
+          sp.animLen=Math.max(0,F*sp.k);
+          sp.vel=0;
+          sp.flash=Math.min(1,(sp.flash||0)+0.05);
+        });
+      }
+    }
+    for(const [key,p] of vparts){
+      if(p.type!=='spring')continue;
+      if(dragSprings.has(key))continue; // ドラッグ中は物理を止める
+      const ld=load[key]||0;
+      const target=ld/100*p.k;
+      if(p.vel===undefined)p.vel=0;
+      if(p.flash===undefined)p.flash=0;
+      const stiff=0.10, damp=0.78;
+      const force=(target-p.animLen)*stiff;
+      p.vel=(p.vel+force)*damp;
+      p.animLen+=p.vel;
+      const motion=Math.abs(p.vel);
+      if(motion>0.04)p.flash=Math.min(1,p.flash+motion*0.5);
+      p.flash*=0.90;
+      if(p.flash<0.01)p.flash=0;
+    }
+    // 棒の下の鎖の中のバネもアニメ
+    for(const [k,bw] of barWeights){
+      if(!bw.chain)continue;
+      bw.chain.forEach((it,i)=>{
+        if(it.type!=='spring')return;
+        const target=chainLoadBelow(bw.chain,i)/100*it.k;
+        if(it.animLen===undefined)it.animLen=0;
+        if(it.vel===undefined)it.vel=0;
+        const force=(target-it.animLen)*0.10;
+        it.vel=(it.vel+force)*0.78;
+        it.animLen+=it.vel;
+      });
+    }
+  }
+
+  // 各部品の「実際に描く上端Y」を列ごとに上から積み上げて計算する。
+  // バネが伸びると、その下にぶら下がる部品もすべて伸びた分だけ下がる。
+  let topYMap={}; // "c:r" -> 描画上端Y
+  function springPx(p,topY){
+    const len=p.nat+Math.max(0,p.animLen);
+    return Math.max(12, len*PX_PER_CM); // 計算値どおりの長さ(クリップしない)
+  }
+  function computeTopY(){
+    topYMap={};
+    for(let c=0;c<COLS;c++){
+      let curTop=null; // この列で積み上がっている下端
+      for(let r=0;r<ROWS;r++){
+        const p=partAt(c,r);
+        if(!p){ if(!partAt(c,r))curTop=null; continue; } // 部品が途切れたら連結リセット
+        const gridTop=nodePos(c,r).y;
+        const top=(curTop!=null)?curTop:gridTop;
+        topYMap[c+":"+r]=top;
+        if(p.type==='spring')curTop=top+springPx(p,top);
+        else { const boxH=Math.min(40,24+p.mass*0.03); curTop=top+6+boxH; }
+      }
+    }
+  }
+  function topYOf(c,r){const v=topYMap[c+":"+r];return v!=null?v:nodePos(c,r).y;}
+
+  // バネ番号を位置順(上→下、左→右)に振る。描画と一覧で共通利用
+  let springNum={};
+  function assignSpringNumbers(){
+    const keys=[];
+    for(const [key,p] of vparts){if(p.type==='spring')keys.push(key);}
+    keys.sort((a,b)=>{const [ca,ra]=a.split(":").map(Number),[cb,rb]=b.split(":").map(Number);return ra-rb||ca-cb;});
+    springNum={};keys.forEach((k,i)=>springNum[k]=i+1);
+  }
+
+  function frame(){
+    const load=computeLoads();
+    tickAnim(load);
+    computeTopY();
+    assignSpringNumbers();
+    ctx.clearRect(0,0,W,H);
+    drawCeiling();
+    drawGridDots();
+    drawEmptyHints();
+    // バネ・おもり(縦辺)を先に
+    for(const [key,p] of vparts){
+      const [c,r]=key.split(":").map(Number);
+      if(p.type==='spring')drawSpring(c,r,p,load[key]||0);
+      else drawWeight(c,r,p);
+    }
+    // 棒と棒のおもりを上に重ねる
+    drawBars();
+    updateExplain(load);
+    requestAnimationFrame(frame);
+  }
+
+  // ===== 起動時のお手本 =====
+  function seed(){
+    // 中央列(c=3) 天井(r=0)→バネ(0-1)→おもり(1-2)
+    vparts.set("3:0",{type:'spring',k:2,nat:8,animLen:0});
+    vparts.set("3:1",{type:'weight',mass:200});
+    selectedKey="3:0";
+  }
+
+  window.addEventListener('resize',resizeCanvas);
+  resizeCanvas();
+  seed();
+  renderSettings();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

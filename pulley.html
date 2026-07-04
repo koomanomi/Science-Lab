@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>滑車のラボ | じっけんラボ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-900:#0b1220;
+    --navy-800:#101b30;
+    --navy-700:#16233c;
+    --navy-600:#1d2c48;
+    --physics:#ff9248;
+    --physics-dim:#ff9248aa;
+    --physics-glow:#ff924455;
+    --amber:#ffc978;
+    --fixedcol:#6fb3ff;
+    --inner:#7be0a8;
+    --text-hi:#f3f6fb;
+    --text-mid:#aab4c8;
+    --text-low:#6d7890;
+    --card-radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--navy-900);
+    color:var(--text-hi);
+    font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN','Yu Gothic',sans-serif;
+    display:flex;justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+  #app{
+    width:100%;max-width:480px;min-height:100vh;
+    background:linear-gradient(180deg,var(--navy-900),var(--navy-800) 60%,var(--navy-900));
+    padding:14px 14px 40px;position:relative;
+  }
+  header{text-align:center;padding:6px 0 10px;}
+  header .back{position:absolute;left:14px;top:14px;color:var(--text-mid);font-size:22px;text-decoration:none;z-index:5;}
+  h1{margin:4px 0 2px;font-size:22px;font-weight:800;letter-spacing:.02em;}
+  h1 rt{font-size:10px;color:var(--physics);font-weight:500;}
+  header p{margin:0;font-size:12px;color:var(--text-mid);}
+  .tag{display:inline-block;margin-top:8px;padding:3px 12px;border-radius:99px;background:var(--physics-glow);border:1px solid var(--physics-dim);color:var(--amber);font-size:11px;font-weight:700;}
+
+  .modes{display:flex;gap:5px;margin-top:12px;}
+  .modes button{
+    flex:1;padding:8px 2px;border-radius:12px;
+    background:var(--navy-800);border:1px solid rgba(255,255,255,0.1);
+    color:var(--text-mid);font-family:inherit;font-size:11.5px;font-weight:700;line-height:1.3;
+  }
+  .modes button .sub{display:block;font-size:8.5px;color:var(--text-low);font-weight:500;}
+  .modes button.active{background:var(--physics);color:var(--navy-900);border-color:var(--physics);}
+  .modes button.active .sub{color:rgba(11,18,32,0.7);}
+
+  .card{background:linear-gradient(180deg,var(--navy-700),var(--navy-600));border:1px solid rgba(255,255,255,0.06);border-radius:var(--card-radius);padding:14px;margin-top:14px;box-shadow:0 8px 22px rgba(0,0,0,0.28);}
+  .card h2{margin:0 0 10px;font-size:13px;color:var(--text-mid);font-weight:700;display:flex;align-items:center;gap:6px;}
+  .card h2::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--physics);display:inline-block;}
+
+  #stageWrap{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,#0d1526,#0a111f);}
+  canvas{display:block;width:100%;touch-action:none;}
+
+  #infoBtn{
+    position:absolute;top:8px;right:8px;z-index:11;
+    width:30px;height:30px;border-radius:50%;
+    background:rgba(11,18,32,0.8);border:1px solid rgba(255,255,255,0.15);
+    color:var(--text-mid);font-size:14px;font-weight:800;font-family:inherit;
+  }
+  #infoBtn.on{background:var(--fixedcol);color:var(--navy-900);border-color:var(--fixedcol);}
+  #infoPanel{
+    position:absolute;top:44px;right:8px;z-index:10;display:none;
+    background:rgba(11,18,32,0.9);border:1px solid rgba(255,255,255,0.12);
+    border-radius:12px;padding:8px 12px;backdrop-filter:blur(4px);
+    box-shadow:0 6px 18px rgba(0,0,0,0.4);min-width:132px;
+  }
+  #infoPanel.show{display:block;}
+  #infoPanel .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:3px 0;}
+  #infoPanel .label{font-size:10px;color:var(--text-mid);}
+  #infoPanel .val{font-size:14px;font-weight:800;}
+  #infoPanel .val.orange{color:var(--physics);}
+  #infoPanel .val.green{color:var(--inner);}
+  #infoPanel .val small{font-size:9px;color:var(--text-low);font-weight:500;}
+
+  .hintbox{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:13px;font-weight:800;color:var(--amber);pointer-events:none;padding:0 10px;text-shadow:0 2px 6px rgba(0,0,0,0.6);}
+  .hintbox.bal{color:var(--fixedcol);}
+  .hintbox.crash{color:#ff7b7b;}
+
+  .runrow{display:flex;gap:10px;margin-top:12px;}
+  .runrow button{
+    flex:1;padding:13px 0;border-radius:14px;font-family:inherit;
+    font-size:15px;font-weight:800;border:1px solid rgba(255,255,255,0.1);
+  }
+  #btnRun{background:var(--physics);color:var(--navy-900);border-color:var(--physics);}
+  #btnRun:disabled{opacity:.45;}
+  #btnReset{background:var(--navy-800);color:var(--text-hi);}
+  #btnReset:active{background:var(--physics-glow);}
+
+  /* プリセット用 左右重りカード */
+  .sides{display:flex;gap:10px;}
+  .side{flex:1;background:var(--navy-800);border-radius:14px;padding:10px;border:1px solid rgba(255,255,255,0.08);}
+  .side .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .side .name{font-size:12px;font-weight:800;}
+  .side.left .name{color:var(--physics);}
+  .side.right .name{color:var(--inner);}
+  .side .total{font-size:15px;font-weight:800;}
+  .side .total small{font-size:9px;color:var(--text-low);font-weight:500;}
+  .palette{display:flex;flex-wrap:wrap;gap:6px;}
+  .palette button{
+    flex:1 0 40%;padding:8px 0;border-radius:10px;font-family:inherit;
+    font-size:12px;font-weight:800;
+    background:var(--navy-700);border:1px solid rgba(255,255,255,0.1);color:var(--text-hi);
+  }
+  .palette button:active{background:var(--physics-glow);}
+  .stacklist{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;min-height:24px;}
+  .chip{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--navy-900);border-radius:99px;padding:3px 8px;}
+  .chip .x{opacity:.65;font-size:12px;}
+  .chip.g10{background:#9ad0ff;}
+  .chip.g25{background:#7be0a8;}
+  .chip.g50{background:#ffc978;}
+  .chip.g100{background:#ff9d6b;}
+  .empty{font-size:11px;color:var(--text-low);}
+
+  /* 自由ラボ：道具パレット */
+  .toolgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;}
+  .toolgrid button{
+    padding:11px 0 9px;border-radius:12px;font-family:inherit;
+    font-size:12.5px;font-weight:800;line-height:1.25;
+    background:var(--navy-800);border:2px solid rgba(255,255,255,0.1);color:var(--text-hi);
+  }
+  .toolgrid button .ic{display:block;font-size:16px;margin-bottom:2px;}
+  .toolgrid button.active{border-color:var(--amber);background:var(--physics-glow);color:var(--amber);}
+  .toolgrid button.wg{color:var(--navy-900);}
+  .toolgrid button.wg.t10{background:#9ad0ff;}
+  .toolgrid button.wg.t25{background:#7be0a8;}
+  .toolgrid button.wg.t50{background:#ffc978;}
+  .toolgrid button.wg.t100{background:#ff9d6b;}
+  .toolgrid button.wg{border-color:transparent;}
+  .toolgrid button.wg.active{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,0.35);}
+  .toolgrid button.danger.active{border-color:#ff7b7b;color:#ff9b9b;background:rgba(255,90,90,0.12);}
+  #toolHint{
+    margin-top:10px;padding:8px 12px;border-radius:10px;
+    background:var(--navy-800);border:1px dashed rgba(255,201,120,0.4);
+    font-size:12px;color:var(--amber);font-weight:700;text-align:center;
+  }
+
+  .ctrl-sub{font-size:11px;color:var(--text-low);margin-top:1px;}
+  .row-flex{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .btn{background:var(--navy-800);border:1px solid rgba(255,255,255,0.12);color:var(--text-hi);font-size:12px;font-weight:700;border-radius:10px;padding:8px 14px;font-family:inherit;}
+  .btn:active{background:var(--physics-glow);}
+
+  details.note{color:var(--text-mid);font-size:12px;line-height:1.75;}
+  details.note summary{cursor:pointer;color:var(--fixedcol);font-weight:700;font-size:12.5px;list-style:none;}
+  details.note summary::-webkit-details-marker{display:none;}
+  details.note p{margin:8px 0 0;}
+  details.note b{color:var(--text-hi);}
+  .hide{display:none !important;}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <a class="back" href="index.html" aria-label="戻る">←</a>
+    <h1><ruby>滑車<rt>かっしゃ</rt></ruby>のラボ</h1>
+    <p>重りをのせて、つりあう仕組みを作ろう</p>
+    <span class="tag">物理 ・ つりあいサンドボックス</span>
+  </header>
+
+  <div class="modes">
+    <button class="active" data-app="single">定滑車<span class="sub">1 : 1</span></button>
+    <button data-app="wheel">輪軸<span class="sub">10cm : 5cm</span></button>
+    <button data-app="movable">動滑車<span class="sub">2本で支える</span></button>
+    <button data-app="free">自由ラボ<span class="sub">好きに組む</span></button>
+  </div>
+
+  <div class="card">
+    <h2 id="stageTitle">じっけんステージ ・ 定滑車</h2>
+    <div id="stageWrap">
+      <canvas id="stage" width="452" height="520"></canvas>
+      <button id="infoBtn">ⓘ</button>
+      <div id="infoPanel"><div id="infoBody"></div></div>
+      <div class="hintbox" id="hintbox"></div>
+    </div>
+    <div class="runrow">
+      <button id="btnRun">▶ ためす</button>
+      <button id="btnReset">リセット</button>
+    </div>
+  </div>
+
+  <!-- プリセット用（左右パレット） -->
+  <div class="card" id="presetCtl">
+    <h2>重りをのせる（タップで追加 ・ ✕で外す）</h2>
+    <div class="sides">
+      <div class="side left">
+        <div class="head"><span class="name" id="leftName">左がわ</span><span class="total" id="leftTotal">0<small>g</small></span></div>
+        <div class="palette">
+          <button data-side="L" data-g="10">＋10g</button>
+          <button data-side="L" data-g="25">＋25g</button>
+          <button data-side="L" data-g="50">＋50g</button>
+          <button data-side="L" data-g="100">＋100g</button>
+        </div>
+        <div class="stacklist" id="leftList"></div>
+      </div>
+      <div class="side right">
+        <div class="head"><span class="name" id="rightName">右がわ</span><span class="total" id="rightTotal">0<small>g</small></span></div>
+        <div class="palette">
+          <button data-side="R" data-g="10">＋10g</button>
+          <button data-side="R" data-g="25">＋25g</button>
+          <button data-side="R" data-g="50">＋50g</button>
+          <button data-side="R" data-g="100">＋100g</button>
+        </div>
+        <div class="stacklist" id="rightList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 自由ラボ：道具パレット -->
+  <div class="card hide" id="freeCtl">
+    <h2>どうぐをえらんで、キャンバスの光る場所をタップ</h2>
+    <div class="toolgrid">
+      <button data-tool="fixed" class="active"><span class="ic">🔵</span>定滑車</button>
+      <button data-tool="movable"><span class="ic">🟠</span>動滑車</button>
+      <button data-tool="anchor"><span class="ic">⚓</span>天井どめ</button>
+      <button data-tool="del" class="danger"><span class="ic">🗑</span>けす</button>
+      <button data-tool="g10" class="wg t10">10g<br>の重り</button>
+      <button data-tool="g25" class="wg t25">25g<br>の重り</button>
+      <button data-tool="g50" class="wg t50">50g<br>の重り</button>
+      <button data-tool="g100" class="wg t100">100g<br>の重り</button>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:10px;">
+      <div id="toolHint" style="flex:1;margin-top:0;">天井の ＋ をタップして定滑車をおこう</div>
+      <button class="btn" id="btnFreeClear">全部けす</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <details class="note" open>
+      <summary id="noteTitle">定滑車：どうすればつりあう？</summary>
+      <div id="noteBody"></div>
+    </details>
+  </div>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  const COL = {
+    bg:'#0a111f', grid:'rgba(255,255,255,0.05)',
+    ceiling:'#2a3a5c', bar:'#3a4a6c', bracket:'#7f94bc',
+    fixed:'#6fb3ff', move:'#ff9248', innerWheel:'#7be0a8',
+    amber:'#ffc978', rope:'#dbe3f0',
+    floor:'#233150', floorTop:'#31446e',
+    spoke:'rgba(255,255,255,0.22)'
+  };
+  const G_COL = {10:'#9ad0ff', 25:'#7be0a8', 50:'#ffc978', 100:'#ff9d6b'};
+  const G_W   = {10:38, 25:46, 50:56, 100:66};
+  const BLOCK_H = 20;
+  const CEIL_Y = 26;
+  const FLOOR_Y = 468;
+  const clampV=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const sum=a=>a.reduce((x,y)=>x+y,0);
+
+  // ============================================================
+  // プリセット3装置
+  // ============================================================
+  const APPS = {
+    single:{
+      title:'定滑車', leftName:'左がわ', rightName:'右がわ',
+      base:{L:280,R:280},
+      preset:{L:[50],R:[]},
+      imbalance:(L,R)=>L-R, vRatio:{L:1,R:-1},
+      hint:'両がわの重さが 同じ になればつりあう（1:1）',
+      note:'<p><b>定滑車のロープの両はしは、いつも同じ力。</b>左右の重りが<b>同じ重さ</b>のときだけつりあう。</p><p>いま左に50gがのっていて、かたむいている。右に何gのせればつりあう？</p>'
+    },
+    wheel:{
+      title:'輪軸（りんじく）', leftName:'外側（うで10cm）', rightName:'内側（うで5cm）',
+      base:{L:300,R:300},
+      preset:{L:[50],R:[]},
+      imbalance:(L,R)=>(L*10-R*5)/10, vRatio:{L:1,R:-0.5},
+      hint:'外側 × 10cm ＝ 内側 × 5cm → 内側は外側の 2倍 の重さでつりあう',
+      note:'<p><b>つりあいの式は「重り × うでの長さ」。</b>外側は10cm、内側は5cm。</p><p>いま外側に50g。内側には何gのせればつりあう？（ヒント：50g × 10cm ＝ ？g × 5cm）</p>'
+    },
+    movable:{
+      title:'動滑車', leftName:'動滑車がわ', rightName:'ロープのはし',
+      base:{L:300,R:270},
+      preset:{L:[100],R:[]},
+      imbalance:(L,R)=>(L-R*2)/2, vRatio:{L:1,R:-2},
+      hint:'動滑車がわは 2本のロープ で支えられる → はしには 半分 の重さでつりあう',
+      note:'<p><b>動滑車がわの重りは、2本のロープで支えられる。</b>ロープのはしには<b>半分</b>の重さでつりあう。</p><p>いま動滑車に100g。はしには何gのせればつりあう？</p>'
+    }
+  };
+  const GEO = {
+    single:{ px:226, py:112, R:46, xL:180, xR:272 },
+    wheel:{ px:226, py:152, R:66, r:33, xL:160, xR:259 },
+    movable:{ mpx:168, mR:42, mBaseY:238, anchorX:126, midX:210,
+              fpx:302, fR:40, fpy:104, xR:342 }
+  };
+
+  // ============================================================
+  // 自由ラボ
+  // ============================================================
+  const FREE_SLOTS_X = [92, 172, 252, 332];
+  const F_FIX_Y = 104, F_MOV_Y = 232, F_R = 34;
+  const F_END_BASE = 300;
+  const F_MHOOK = F_MOV_Y + F_R + 16;
+
+  let free = {
+    slots:[null,'fixed',null,null],
+    stacks:{ endL:[50], endR:[] },
+    endMode:{ endL:'weight', endR:'weight' },   // 'weight'(重りをつるす) or 'anchor'(天井に固定)
+    disp:{},                 // 変位
+    vels:{},                 // 速度（slide, m0..m3）
+    tool:'fixed'
+  };
+  // 重りをのせられるフック（アンカー固定した端は除外）
+  function freeHookKeys(){
+    const keys=[];
+    if(free.endMode.endL==='weight') keys.push('endL');
+    if(free.endMode.endR==='weight') keys.push('endR');
+    free.slots.forEach((s,i)=>{ if(s==='movable') keys.push('m'+i); });
+    return keys;
+  }
+  function freeEnsure(){
+    ['endL','endR'].forEach(k=>{ if(!free.stacks[k]) free.stacks[k]=[]; if(!(k in free.disp)) free.disp[k]=0; });
+    free.slots.forEach((s,i)=>{ if(s==='movable'){ const k='m'+i; if(!free.stacks[k]) free.stacks[k]=[]; if(!(k in free.disp)) free.disp[k]=0; } });
+    // アンカー端には重りをのせない
+    ['endL','endR'].forEach(k=>{ if(free.endMode[k]==='anchor') free.stacks[k]=[]; });
+    Object.keys(free.stacks).forEach(k=>{
+      if(k.startsWith('m')){
+        const i=parseInt(k.slice(1),10);
+        if(free.slots[i]!=='movable'){ delete free.stacks[k]; delete free.disp[k]; delete free.vels[k]; }
+      }
+    });
+  }
+  function freeParts(){
+    const parts=[];
+    free.slots.forEach((s,i)=>{
+      if(s) parts.push({type:s, x:FREE_SLOTS_X[i], slot:i});
+    });
+    return parts;
+  }
+  function freeEndXs(){
+    const parts=freeParts();
+    if(parts.length===0) return null;
+    const first=parts[0], last=parts[parts.length-1];
+    const yOf=p=> p.type==='fixed'? F_FIX_Y : F_MOV_Y+(free.disp['m'+p.slot]||0);
+    return { xL:first.x-F_R, xR:last.x+F_R, yL:yOf(first), yR:yOf(last) };
+  }
+  // つりあい判定（誤差一覧）※アンカー対応
+  function freeErrors(){
+    freeEnsure();
+    const mL=free.endMode.endL, mR=free.endMode.endR;
+    const tL = mL==='weight'? sum(free.stacks.endL) : 0;
+    const tR = mR==='weight'? sum(free.stacks.endR) : 0;
+    const anchored = (mL==='anchor'?1:0)+(mR==='anchor'?1:0);
+    const pulleys=[];
+    let T, slide;
+    if(anchored===0){
+      T=(tL+tR)/2; slide=tL-tR;                 // 両はしとも重り → すべりモードあり
+    } else if(anchored===1){
+      T = (mL==='weight'? tL : tR);             // 重りのある端が張力を決める
+      slide=0;                                  // 片方が天井固定 → すべらない
+    } else {
+      // 両端とも天井固定 → ロープは動かない（剛体的に保持）
+      let held=0; free.slots.forEach((s,i)=>{ if(s==='movable') held=Math.max(held,sum(free.stacks['m'+i]||[])); });
+      T=held/2; slide=0;
+    }
+    free.slots.forEach((s,i)=>{
+      if(s!=='movable') return;
+      const wm=sum(free.stacks['m'+i]||[]);
+      pulleys.push({key:'m'+i, err: wm - 2*T});
+    });
+    const balanced = (anchored===2) ? true : (slide===0 && pulleys.every(p=>p.err===0));
+    const any = tL>0||tR>0||free.slots.some((s,i)=>s==='movable'&&sum(free.stacks['m'+i]||[])>0);
+    return {tL,tR,T,slide,pulleys,balanced,any,mL,mR,anchored};
+  }
+
+  // ============================================================
+  // 共通状態
+  // ============================================================
+  let appKey='single';
+  let state={
+    stacks:{L:[],R:[]},
+    running:false, pos:0, vel:0,
+    crashed:null, settled:false,
+    particles:[], sparkles:[], shake:0
+  };
+  function totals(){ return {L:sum(state.stacks.L), R:sum(state.stacks.R)}; }
+
+  function effPos(){
+    if(appKey==='free') return 0;
+    if(state.running) return state.pos;
+    const t=totals();
+    const imb=APPS[appKey].imbalance(t.L,t.R);
+    return clampV(imb*0.35, -26, 26);
+  }
+  function dispOf(side){
+    const a=APPS[appKey];
+    const p=effPos();
+    return side==='L'? p : p*a.vRatio.R;
+  }
+  function hookXY(side){
+    const a=APPS[appKey], g=GEO[appKey];
+    if(appKey==='movable'){
+      if(side==='L') return {x:g.mpx, y:g.mBaseY+g.mR+16+dispOf('L')};
+      return {x:g.xR, y:a.base.R+dispOf('R')};
+    }
+    const x= side==='L'? g.xL : g.xR;
+    return {x, y:a.base[side]+dispOf(side)};
+  }
+  function stackPos(side){ return hookXY(side); }
+
+  // 自由ラボ：表示変位（停止中はプレビューのかたむき）
+  function freeEffDisp(key){
+    if(state.running || state.crashed) return free.disp[key]||0;
+    const er=freeErrors();
+    // 天井に固定された端は動かない
+    if((key==='endL'&&er.mL==='anchor')||(key==='endR'&&er.mR==='anchor')) return 0;
+    let d=0;
+    if(key==='endL') d = clampV(er.slide*0.2, -16, 16);
+    else if(key==='endR') d = clampV(-er.slide*0.2, -16, 16);
+    const p = er.pulleys.find(p=>p.key===key);
+    if(p) d += clampV(p.err*0.12, -14, 14);
+    // 動滑車が沈むと（固定でない）はしは少し上がる
+    if(key==='endL'||key==='endR'){
+      const mult = (er.anchored===1)? 2 : 1;   // 片方固定なら残りの端が2倍引かれる
+      er.pulleys.forEach(p=>{ d -= clampV(p.err*0.06*mult, -14, 14); });
+    }
+    return d;
+  }
+
+  // ============================================================
+  // 物理ステップ
+  // ============================================================
+  function stackH(arr){ return arr.length*BLOCK_H+14; }
+
+  function stepPreset(){
+    const t=totals(), a=APPS[appKey];
+    const imb=a.imbalance(t.L,t.R);
+    if(Math.abs(imb)<1e-9){
+      if(!state.settled){ state.settled=true; setBanner('🎉 つりあい成功！','bal'); sparkleAt([stackPos('L'),stackPos('R')]); }
+      return;
+    }
+    const massish=Math.max(40,t.L+t.R);
+    state.vel += 0.05*imb/Math.sqrt(massish);
+    state.vel = clampV(state.vel,-6,6);
+    state.pos += state.vel;
+    const g=GEO[appKey];
+    const shL=stackH(state.stacks.L), shR=stackH(state.stacks.R);
+    let down, up;
+    if(appKey==='single'){ down=FLOOR_Y-(a.base.L+18+shL); up=-(FLOOR_Y-(a.base.R+18+shR)); }
+    else if(appKey==='wheel'){ down=FLOOR_Y-(a.base.L+18+shL); up=-((FLOOR_Y-(a.base.R+18+shR))/0.5); }
+    else { down=FLOOR_Y-(g.mBaseY+g.mR+16+18+shL); up=-((FLOOR_Y-(a.base.R+18+shR))/2); }
+    if(state.pos>=down){ state.pos=down; crashPreset('L'); }
+    else if(state.pos<=up){ state.pos=up; crashPreset('R'); }
+  }
+  function crashPreset(side){
+    const names={
+      single:{L:'左がわ',R:'右がわ'},
+      wheel:{L:'外側',R:'内側'},
+      movable:{L:'動滑車がわ',R:'ロープのはし'}
+    };
+    state.crashed={side};
+    state.shake=22;
+    setBanner('💥 '+names[appKey][side]+'が重すぎて ドッシーン！！','crash');
+    burst(stackPos(side), state.stacks[side]);
+  }
+
+  // 自由ラボ：ロープの滑りと各動滑車が同時に動く
+  function stepFree(){
+    const er=freeErrors();
+    if(er.balanced){
+      if(!state.settled){
+        state.settled=true;
+        setBanner(er.any?'🎉 つりあい成功！':'重りをのせよう','bal');
+        if(er.any) sparkleAt(freeHookKeys().map(freeHookXY).filter(Boolean));
+      }
+      return;
+    }
+    // 速度更新
+    const mass=Math.max(40, er.tL+er.tR+ er.pulleys.reduce((s,p)=>s+Math.abs(p.err),0));
+    if(er.anchored===0){
+      free.vels.slide = clampV((free.vels.slide||0) + 0.05*er.slide/Math.sqrt(mass), -5, 5);
+    } else {
+      free.vels.slide = 0;   // 片方以上が天井固定 → すべらない
+    }
+    er.pulleys.forEach(p=>{
+      free.vels[p.key] = clampV((free.vels[p.key]||0) + 0.05*p.err/Math.sqrt(mass), -5, 5);
+    });
+    let pulleySumV=0;
+    er.pulleys.forEach(p=>{ pulleySumV += (free.vels[p.key]||0); });
+    // 変位更新（ロープ長保存）
+    if(er.anchored===0){
+      free.disp.endL = (free.disp.endL||0) + (free.vels.slide||0) - pulleySumV;
+      free.disp.endR = (free.disp.endR||0) - (free.vels.slide||0) - pulleySumV;
+    } else if(er.mL==='anchor' && er.mR==='weight'){
+      // 左を固定 → 右がすべて引き取る（2倍）
+      free.disp.endL = 0;
+      free.disp.endR = (free.disp.endR||0) - 2*pulleySumV;
+    } else if(er.mR==='anchor' && er.mL==='weight'){
+      free.disp.endR = 0;
+      free.disp.endL = (free.disp.endL||0) - 2*pulleySumV;
+    } else {
+      free.disp.endL = 0; free.disp.endR = 0;   // 両端固定
+    }
+    er.pulleys.forEach(p=>{
+      free.disp[p.key] = (free.disp[p.key]||0) + (free.vels[p.key]||0);
+    });
+    // 衝突判定
+    const ends=freeEndXs();
+    if(!ends) return;
+    const checks=[];
+    if(er.mL==='weight') checks.push({key:'endL', x:ends.xL, hookY:F_END_BASE+(free.disp.endL||0), contactY:ends.yL});
+    if(er.mR==='weight') checks.push({key:'endR', x:ends.xR, hookY:F_END_BASE+(free.disp.endR||0), contactY:ends.yR});
+    for(const c of checks){
+      const st=free.stacks[c.key]||[];
+      if(st.length>0 && c.hookY+18+stackH(st)>=FLOOR_Y){ crashFree(c.key,{x:c.x,y:c.hookY}); return; }
+      if(c.hookY<=c.contactY+14){ crashFree(c.key,{x:c.x,y:c.hookY},true); return; }
+    }
+    for(let i=0;i<free.slots.length;i++){
+      if(free.slots[i]!=='movable') continue;
+      const key='m'+i;
+      const py=F_MOV_Y+(free.disp[key]||0);
+      const st=free.stacks[key]||[];
+      if(py+F_R+16+18+stackH(st)>=FLOOR_Y){ crashFree(key,{x:FREE_SLOTS_X[i],y:py+F_R+16}); return; }
+      if(py-F_R<=CEIL_Y+34){ crashFree(key,{x:FREE_SLOTS_X[i],y:py+F_R+16},true); return; }
+    }
+  }
+  function crashFree(key, xy, jam){
+    state.crashed={side:key};
+    state.shake=22;
+    const nm = key==='endL'?'左はし': key==='endR'?'右はし':'動滑車';
+    setBanner(jam? '💥 '+nm+'が巻きこまれて ガシャン！！' : '💥 '+nm+'が落ちて ドッシーン！！','crash');
+    burst(xy, free.stacks[key]||[]);
+  }
+  function burst(p, blocks){
+    blocks.forEach((g,i)=>{
+      for(let k=0;k<5;k++){
+        state.particles.push({
+          x:p.x+(Math.random()-0.5)*G_W[g],
+          y:Math.min(FLOOR_Y-8, p.y+18+i*BLOCK_H),
+          vx:(Math.random()-0.5)*7, vy:-Math.random()*7-2,
+          s:6+Math.random()*8, col:G_COL[g],
+          rot:Math.random()*6.28, vr:(Math.random()-0.5)*0.4,
+          life:90+Math.random()*30
+        });
+      }
+    });
+  }
+  function sparkleAt(points){
+    points.forEach(p=>{
+      for(let k=0;k<14;k++) state.sparkles.push({x:p.x,y:p.y+20,vx:(Math.random()-0.5)*4,vy:-Math.random()*4-1,life:50+Math.random()*30,col:Math.random()<0.5?'#ffc978':'#8fe0b6'});
+    });
+  }
+
+  // ============================================================
+  // 描画
+  // ============================================================
+  function drawGrid(){
+    ctx.fillStyle=COL.bg; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle=COL.grid; ctx.lineWidth=1; const s=26;
+    for(let x=0;x<=W;x+=s){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+    for(let y=0;y<=H;y+=s){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  }
+  function drawCeiling(){
+    ctx.fillStyle=COL.ceiling; ctx.fillRect(0,0,W,CEIL_Y);
+    for(let x=6;x<W;x+=14){ctx.strokeStyle=COL.bar;ctx.beginPath();ctx.moveTo(x,CEIL_Y);ctx.lineTo(x+8,CEIL_Y-12);ctx.stroke();}
+  }
+  function drawFloor(){
+    ctx.fillStyle=COL.floor; ctx.fillRect(0,FLOOR_Y,W,H-FLOOR_Y);
+    ctx.fillStyle=COL.floorTop; ctx.fillRect(0,FLOOR_Y,W,4);
+    for(let x=4;x<W;x+=16){
+      ctx.strokeStyle='rgba(255,255,255,0.06)';
+      ctx.beginPath(); ctx.moveTo(x,H); ctx.lineTo(x+10,FLOOR_Y+4); ctx.stroke();
+    }
+  }
+  function bracket(x,toY){
+    ctx.strokeStyle=COL.bracket; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.moveTo(x,CEIL_Y); ctx.lineTo(x,toY); ctx.stroke();
+    ctx.beginPath(); ctx.arc(x,CEIL_Y+2,4,0,Math.PI*2); ctx.fillStyle=COL.amber; ctx.fill();
+  }
+  function wheelBody(x,y,R,color){
+    ctx.save();
+    ctx.shadowColor=color; ctx.shadowBlur=14;
+    ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2);
+    ctx.fillStyle='rgba(20,31,56,0.72)'; ctx.fill();
+    ctx.lineWidth=6; ctx.strokeStyle=color; ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.beginPath(); ctx.arc(x,y,Math.max(6,R-9),0,Math.PI*2);
+    ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,0.14)'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2); ctx.fillStyle=COL.amber; ctx.fill();
+    ctx.restore();
+  }
+  function rope(x1,y1,x2,y2){
+    ctx.strokeStyle=COL.rope; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  }
+  function ropeArc(x,y,R,a1,a2){
+    ctx.strokeStyle=COL.rope; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.arc(x,y,R,a1,a2); ctx.stroke();
+  }
+  function roundRect(x,y,w,h,rr){
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);
+    ctx.arcTo(x+w,y,x+w,y+h,rr);
+    ctx.arcTo(x+w,y+h,x,y+h,rr);
+    ctx.arcTo(x,y+h,x,y,rr);
+    ctx.arcTo(x,y,x+w,y,rr);
+    ctx.closePath();
+  }
+  function label(x,y,t,c){
+    ctx.font='700 10px "M PLUS Rounded 1c"'; ctx.fillStyle=c; ctx.textAlign='center';
+    ctx.fillText(t,x,y);
+  }
+  // 光るガイド
+  function glowRing(x,y,r,color){
+    const t=Date.now()/400;
+    const pulse=2+Math.sin(t)*1.6;
+    ctx.beginPath(); ctx.arc(x,y,r+pulse,0,Math.PI*2);
+    ctx.strokeStyle=color; ctx.lineWidth=2.5;
+    ctx.setLineDash([5,5]); ctx.stroke(); ctx.setLineDash([]);
+  }
+  function drawStackAt(p, st, hidden){
+    if(hidden) return;
+    ctx.strokeStyle=COL.rope; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x,p.y+6); ctx.stroke();
+    ctx.beginPath(); ctx.arc(p.x,p.y+12,7,0.15*Math.PI,1.85*Math.PI);
+    ctx.strokeStyle='#8fa4c9'; ctx.lineWidth=3; ctx.stroke();
+    if(st.length===0){
+      ctx.font='600 9px "M PLUS Rounded 1c"'; ctx.fillStyle='#77839c'; ctx.textAlign='center';
+      ctx.fillText('フック', p.x, p.y+34);
+      return;
+    }
+    let y=p.y+18;
+    for(let i=0;i<st.length;i++){
+      const g=st[i], w=G_W[g];
+      ctx.fillStyle=G_COL[g];
+      ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=1.5;
+      roundRect(p.x-w/2,y,w,BLOCK_H,5); ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#0b1220'; ctx.font='700 11px "M PLUS Rounded 1c"';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(g+'g', p.x, y+BLOCK_H/2);
+      y+=BLOCK_H;
+    }
+    ctx.font='700 11px "M PLUS Rounded 1c"'; ctx.fillStyle='#f3f6fb'; ctx.textAlign='center';
+    ctx.fillText(sum(st)+'g', p.x, y+12);
+  }
+
+  // --- プリセット描画 ---
+  function drawPreset(){
+    const g=GEO[appKey];
+    if(appKey==='single'){
+      bracket(g.px,g.py-g.R);
+      const pL=stackPos('L'), pR=stackPos('R');
+      rope(g.xL,g.py,g.xL,pL.y); rope(g.xR,g.py,g.xR,pR.y);
+      ropeArc(g.px,g.py,g.R,Math.PI,2*Math.PI);
+      wheelBody(g.px,g.py,g.R,COL.fixed);
+      label(g.px,g.py-g.R-8,'定滑車','#8fb6e8');
+    } else if(appKey==='wheel'){
+      bracket(g.px,g.py-g.R);
+      const pL=stackPos('L'), pR=stackPos('R');
+      // 外側ロープ（左）は外輪の背面に巻き付く → 先に描いて外輪本体で隠す
+      ropeArc(g.px,g.py,g.R,Math.PI,1.5*Math.PI);
+      rope(g.xL,g.py,g.xL,pL.y);
+      // 外輪本体
+      wheelBody(g.px,g.py,g.R,COL.fixed);
+      // 内輪本体＋スポーク
+      ctx.beginPath(); ctx.arc(g.px,g.py,g.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(24,38,66,0.6)'; ctx.fill();
+      ctx.lineWidth=5; ctx.strokeStyle=COL.innerWheel; ctx.stroke();
+      const phi=effPos()/g.R;
+      ctx.strokeStyle=COL.spoke; ctx.lineWidth=2;
+      for(let k=0;k<4;k++){
+        const a2=-phi+k*Math.PI/2;
+        ctx.beginPath();
+        ctx.moveTo(g.px+Math.cos(a2)*g.r, g.py+Math.sin(a2)*g.r);
+        ctx.lineTo(g.px+Math.cos(a2)*g.R, g.py+Math.sin(a2)*g.R);
+        ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(g.px,g.py,5,0,Math.PI*2); ctx.fillStyle=COL.amber; ctx.fill();
+      // 内側ロープ（右）は内輪の「前面」に巻き付く → 内輪本体の後に描く
+      ropeArc(g.px,g.py,g.r,1.5*Math.PI,2*Math.PI);
+      rope(g.xR,g.py,g.xR,pR.y);
+      label(g.px,g.py-g.R-8,'外側の輪 10cm','#8fb6e8');
+      label(g.px+g.r+40,g.py-g.r-6,'内側の輪 5cm','#8fe0b6');
+    } else {
+      const dispL=dispOf('L');
+      const mpy=g.mBaseY+dispL;
+      const pR=stackPos('R');
+      ctx.beginPath(); ctx.arc(g.anchorX,CEIL_Y+4,5,0,Math.PI*2); ctx.fillStyle=COL.amber; ctx.fill();
+      label(g.anchorX,CEIL_Y+20,'固定','#7f94bc');
+      bracket(g.fpx,g.fpy-g.fR);
+      rope(g.anchorX,CEIL_Y+4,g.anchorX,mpy);
+      ropeArc(g.mpx,mpy,g.mR,0,Math.PI);
+      rope(g.midX,mpy,g.fpx-g.fR,g.fpy);
+      ropeArc(g.fpx,g.fpy,g.fR,Math.PI,2*Math.PI);
+      rope(g.fpx+g.fR,g.fpy,g.xR,g.fpy);
+      rope(g.xR,g.fpy,g.xR,pR.y);
+      wheelBody(g.mpx,mpy,g.mR,COL.move);
+      wheelBody(g.fpx,g.fpy,g.fR,COL.fixed);
+      label(g.mpx,mpy-g.mR-8,'動滑車','#ffc9a0');
+      label(g.fpx,g.fpy-g.fR-8,'定滑車','#8fb6e8');
+      ctx.strokeStyle=COL.bracket; ctx.lineWidth=4;
+      ctx.beginPath(); ctx.moveTo(g.mpx,mpy+5); ctx.lineTo(g.mpx,mpy+g.mR+16); ctx.stroke();
+    }
+    const cs=state.crashed? state.crashed.side : null;
+    drawStackAt(stackPos('L'), state.stacks.L, cs==='L');
+    drawStackAt(stackPos('R'), state.stacks.R, cs==='R');
+  }
+
+  // --- 自由ラボ描画 ---
+  function freeHookXY(key){
+    const ends=freeEndXs();
+    if(key==='endL'){ if(!ends) return null; return {x:ends.xL, y:F_END_BASE+freeEffDisp('endL')}; }
+    if(key==='endR'){ if(!ends) return null; return {x:ends.xR, y:F_END_BASE+freeEffDisp('endR')}; }
+    const i=parseInt(key.slice(1),10);
+    return {x:FREE_SLOTS_X[i], y:F_MOV_Y+freeEffDisp(key)+F_R+16};
+  }
+  function drawFree(){
+    const toolIsPart = free.tool==='fixed'||free.tool==='movable';
+    const toolIsWeight = free.tool.startsWith('g');
+    // 天井スロット
+    free.slots.forEach((s,i)=>{
+      const x=FREE_SLOTS_X[i];
+      if(!s){
+        ctx.beginPath(); ctx.arc(x,CEIL_Y+18,10,0,Math.PI*2);
+        ctx.setLineDash([4,4]);
+        ctx.strokeStyle='rgba(255,146,72,0.55)'; ctx.lineWidth=2; ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.font='800 13px "M PLUS Rounded 1c"'; ctx.fillStyle='rgba(255,146,72,0.8)';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('＋', x, CEIL_Y+18);
+        if(toolIsPart) glowRing(x, CEIL_Y+18, 13, '#ffc978');
+      } else if(toolIsPart){
+        // 置きかえ可能を示す
+        glowRing(x, CEIL_Y+18, 13, 'rgba(255,201,120,0.5)');
+      }
+    });
+    const parts=freeParts();
+    if(parts.length===0){
+      ctx.font='700 13px "M PLUS Rounded 1c"'; ctx.fillStyle='#8a97ad'; ctx.textAlign='center';
+      ctx.fillText('天井の ＋ をタップして滑車をおこう', W/2, 200);
+      return;
+    }
+    const ends=freeEndXs();
+    const dL=freeEffDisp('endL'), dR=freeEffDisp('endR');
+    // 左端ロープ：重り端は下へ、アンカー端は天井へ
+    if(free.endMode.endL==='anchor'){
+      rope(ends.xL, ends.yL, ends.xL, CEIL_Y+6);
+      anchorGlyph(ends.xL, CEIL_Y+6);
+    } else {
+      rope(ends.xL, ends.yL, ends.xL, F_END_BASE+dL);
+    }
+    for(let i=0;i<parts.length;i++){
+      const p=parts[i];
+      const py = p.type==='fixed'? F_FIX_Y : F_MOV_Y+freeEffDisp('m'+p.slot);
+      if(p.type==='fixed') ropeArc(p.x,py,F_R,Math.PI,2*Math.PI);
+      else ropeArc(p.x,py,F_R,0,Math.PI);
+      if(i<parts.length-1){
+        const q=parts[i+1];
+        const qy = q.type==='fixed'? F_FIX_Y : F_MOV_Y+freeEffDisp('m'+q.slot);
+        rope(p.x+F_R,py,q.x-F_R,qy);
+      }
+    }
+    // 右端ロープ
+    if(free.endMode.endR==='anchor'){
+      rope(ends.xR, ends.yR, ends.xR, CEIL_Y+6);
+      anchorGlyph(ends.xR, CEIL_Y+6);
+    } else {
+      rope(ends.xR, ends.yR, ends.xR, F_END_BASE+dR);
+    }
+    // パーツ本体
+    parts.forEach(p=>{
+      if(p.type==='fixed'){
+        bracket(p.x, F_FIX_Y-F_R);
+        wheelBody(p.x, F_FIX_Y, F_R, COL.fixed);
+        label(p.x, F_FIX_Y-F_R-8, '定滑車', '#8fb6e8');
+        if(free.tool==='del') glowRing(p.x, F_FIX_Y, F_R+4, '#ff8a8a');
+      } else {
+        const dy=freeEffDisp('m'+p.slot);
+        wheelBody(p.x, F_MOV_Y+dy, F_R, COL.move);
+        label(p.x, F_MOV_Y+dy-F_R-8, '動滑車', '#ffc9a0');
+        ctx.strokeStyle=COL.bracket; ctx.lineWidth=4;
+        ctx.beginPath(); ctx.moveTo(p.x, F_MOV_Y+dy+5); ctx.lineTo(p.x, F_MOV_Y+dy+F_R+16); ctx.stroke();
+        if(free.tool==='del') glowRing(p.x, F_MOV_Y+dy, F_R+4, '#ff8a8a');
+      }
+    });
+    // フックとスタック
+    const cs=state.crashed? state.crashed.side : null;
+    freeHookKeys().forEach(k=>{
+      const p=freeHookXY(k); if(!p) return;
+      drawStackAt(p, free.stacks[k]||[], cs===k);
+      if(toolIsWeight && cs!==k) glowRing(p.x, p.y+12, 13, '#ffc978');
+      if(free.tool==='del' && (free.stacks[k]||[]).length>0 && cs!==k){
+        const h=(free.stacks[k]||[]).length*BLOCK_H;
+        glowRing(p.x, p.y+18+h/2, Math.max(24,h/2+8), '#ff8a8a');
+      }
+    });
+    // アンカーツール選択中：両端の切りかえ目印（天井付近）を光らせる
+    if(free.tool==='anchor'){
+      [['endL',ends.xL],['endR',ends.xR]].forEach(([k,x])=>{
+        glowRing(x, CEIL_Y+16, 13, '#8fd0ff');
+        ctx.font='800 12px "M PLUS Rounded 1c"';
+        ctx.fillStyle= free.endMode[k]==='anchor'? '#8fd0ff':'rgba(143,208,255,0.7)';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('⚓', x, CEIL_Y+16);
+      });
+    }
+  }
+  // 天井固定の錨マーク
+  function anchorGlyph(x,y){
+    ctx.fillStyle=COL.amber;
+    ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle=COL.bracket; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(x-9,y); ctx.lineTo(x+9,y); ctx.stroke();
+    ctx.font='800 11px "M PLUS Rounded 1c"'; ctx.fillStyle='#8fb6e8';
+    ctx.textAlign='center'; ctx.textBaseline='bottom';
+    ctx.fillText('固定', x, y-4);
+  }
+
+  function drawParticles(){
+    state.particles=state.particles.filter(p=>p.life>0);
+    state.particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.35; p.rot+=p.vr; p.life--;
+      if(p.y>FLOOR_Y+2&&p.vy>0){p.y=FLOOR_Y+2;p.vy*=-0.45;p.vx*=0.7;}
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+      ctx.globalAlpha=clampV(p.life/40,0,1);
+      ctx.fillStyle=p.col; ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s);
+      ctx.restore();
+    });
+    ctx.globalAlpha=1;
+    state.sparkles=state.sparkles.filter(p=>p.life>0);
+    state.sparkles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.05; p.life--;
+      ctx.globalAlpha=clampV(p.life/40,0,1);
+      ctx.fillStyle=p.col;
+      ctx.beginPath(); ctx.arc(p.x,p.y,2.4,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha=1;
+  }
+
+  function render(){
+    ctx.save();
+    if(state.shake>0){
+      state.shake--;
+      const s=state.shake*0.55;
+      ctx.translate((Math.random()-0.5)*s,(Math.random()-0.5)*s);
+    }
+    drawGrid(); drawCeiling(); drawFloor();
+    if(appKey==='free') drawFree(); else drawPreset();
+    drawParticles();
+    ctx.restore();
+  }
+
+  // ============================================================
+  // UI
+  // ============================================================
+  const hintbox=document.getElementById('hintbox');
+  function setBanner(t,cls){ hintbox.textContent=t; hintbox.className='hintbox'+(cls?' '+cls:''); }
+
+  const TOOL_HINTS = {
+    fixed:'天井の ＋ をタップ → 定滑車をおく（置きかえもOK）',
+    movable:'天井の ＋ をタップ → 動滑車をぶら下げる',
+    anchor:'ロープのはしの ⚓ をタップ → 天井に固定／もどす',
+    del:'赤く光る滑車や重りをタップしてけす',
+    g10:'光るフックをタップ → 10gの重りをのせる',
+    g25:'光るフックをタップ → 25gの重りをのせる',
+    g50:'光るフックをタップ → 50gの重りをのせる',
+    g100:'光るフックをタップ → 100gの重りをのせる'
+  };
+  function buildingBanner(){
+    if(appKey==='free'){
+      const er=freeErrors();
+      if(freeParts().length===0){ setBanner('天井の ＋ をタップして滑車をおこう',''); return; }
+      if(er.balanced && er.any) setBanner('つりあいそう！ ▶ためす でかくにん','bal');
+      else if(er.balanced) setBanner('重りをのせてみよう','');
+      else setBanner('かたむいてる…どこに重りをのせる？','');
+      return;
+    }
+    const t=totals();
+    const imb=APPS[appKey].imbalance(t.L,t.R);
+    if(t.L===0&&t.R===0) setBanner('重りをのせよう','');
+    else if(Math.abs(imb)<1e-9) setBanner('つりあいそう！ ▶ためす でかくにん','bal');
+    else setBanner('かたむいてる…つりあわせてみよう','');
+  }
+
+  function updateUI(){
+    document.getElementById('presetCtl').classList.toggle('hide', appKey==='free');
+    document.getElementById('freeCtl').classList.toggle('hide', appKey!=='free');
+
+    if(appKey!=='free'){
+      const t=totals(), a=APPS[appKey];
+      document.getElementById('leftName').textContent=a.leftName;
+      document.getElementById('rightName').textContent=a.rightName;
+      document.getElementById('leftTotal').innerHTML=t.L+'<small>g</small>';
+      document.getElementById('rightTotal').innerHTML=t.R+'<small>g</small>';
+      ['L','R'].forEach(side=>{
+        const el=document.getElementById(side==='L'?'leftList':'rightList');
+        el.innerHTML='';
+        if(state.stacks[side].length===0) el.innerHTML='<span class="empty">まだ重りがありません</span>';
+        else state.stacks[side].forEach((g,i)=>{
+          const c=document.createElement('span');
+          c.className='chip g'+g;
+          c.innerHTML=g+'g<span class="x" data-side="'+side+'" data-idx="'+i+'">✕</span>';
+          el.appendChild(c);
+        });
+      });
+      let cond;
+      if(appKey==='single') cond=t.L+' vs '+t.R;
+      else if(appKey==='wheel') cond=(t.L*10)+' vs '+(t.R*5);
+      else cond=t.L+' vs '+(t.R*2);
+      document.getElementById('infoBody').innerHTML=
+        '<div class="row"><span class="label">'+a.leftName+'</span><span class="val orange">'+t.L+'<small>g</small></span></div>'+
+        '<div class="row"><span class="label">'+a.rightName+'</span><span class="val green">'+t.R+'<small>g</small></span></div>'+
+        '<div class="row"><span class="label">くらべる数</span><span class="val">'+cond+'</span></div>';
+      document.getElementById('btnRun').disabled = state.running || (t.L===0&&t.R===0);
+    } else {
+      freeEnsure();
+      document.getElementById('toolHint').textContent = TOOL_HINTS[free.tool];
+      const er=freeErrors();
+      const lv = er.mL==='anchor'? '天井固定' : er.tL+'g';
+      const rv = er.mR==='anchor'? '天井固定' : er.tR+'g';
+      let rows=
+        '<div class="row"><span class="label">左はし</span><span class="val orange">'+lv+'</span></div>'+
+        '<div class="row"><span class="label">右はし</span><span class="val green">'+rv+'</span></div>'+
+        '<div class="row"><span class="label">ロープの力</span><span class="val">'+er.T+'<small>g</small></span></div>';
+      free.slots.forEach((s,i)=>{
+        if(s==='movable') rows+='<div class="row"><span class="label">動滑車'+(i+1)+'</span><span class="val">'+sum(free.stacks['m'+i]||[])+'<small>g</small></span></div>';
+      });
+      document.getElementById('infoBody').innerHTML=rows;
+      document.getElementById('btnRun').disabled = state.running || freeParts().length===0 || !er.any;
+    }
+    if(!state.running) buildingBanner();
+  }
+
+  function stopMotion(){
+    state.running=false; state.vel=0; state.pos=0;
+    state.crashed=null; state.settled=false;
+    state.particles=[]; state.sparkles=[]; state.shake=0;
+    Object.keys(free.disp).forEach(k=>free.disp[k]=0);
+    free.vels={};
+  }
+  function applyPreset(){
+    const a=APPS[appKey];
+    state.stacks={L:[...a.preset.L], R:[...a.preset.R]};
+  }
+  function fullReset(){
+    stopMotion();
+    if(appKey==='free'){
+      free.slots=[null,'fixed',null,null];
+      free.stacks={endL:[50],endR:[]};
+      free.endMode={endL:'weight',endR:'weight'};
+      free.disp={}; free.vels={}; free.tool='fixed';
+      document.querySelectorAll('#freeCtl .toolgrid button[data-tool]').forEach(x=>x.classList.toggle('active', x.dataset.tool==='fixed'));
+      freeEnsure();
+    } else applyPreset();
+    updateUI(); render();
+  }
+
+  // ============================================================
+  // イベント
+  // ============================================================
+  document.querySelectorAll('.modes button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      appKey=b.dataset.app;
+      document.querySelectorAll('.modes button').forEach(x=>x.classList.toggle('active',x===b));
+      const titles={single:'定滑車',wheel:'輪軸（りんじく）',movable:'動滑車',free:'自由ラボ'};
+      document.getElementById('stageTitle').textContent='じっけんステージ ・ '+titles[appKey];
+      const NOTE_FREE={
+        t:'自由ラボ：つりあいのルール',
+        b:'<p><b>1本のロープの力（張力）は、どこでも同じ。</b>だから<b>左はしと右はしの重りは同じ重さ</b>じゃないとつりあわない。</p><p><b>動滑車は2本のロープで支えられる</b>から、動滑車のフックには<b>はしの2倍</b>の重さをのせるとつりあう。</p><p><b>⚓天井どめ：</b>ロープのはしを天井に固定すると、そのロープは動かなくなる。動滑車の片方を天井どめにして、もう片方だけに重りをのせると、<b>本物の「動滑車で半分の力」</b>のかたちになる。（例：動滑車に100g・片方を天井どめ・もう片方に50g）</p><p><b>（バネのパーツも近日追加予定！）</b></p>'
+      };
+      if(appKey==='free'){
+        document.getElementById('noteTitle').textContent=NOTE_FREE.t;
+        document.getElementById('noteBody').innerHTML=NOTE_FREE.b;
+      } else {
+        document.getElementById('noteTitle').textContent=APPS[appKey].title+'：どうすればつりあう？';
+        document.getElementById('noteBody').innerHTML='<p style="margin-top:6px;color:#ffc978;font-weight:700;">'+APPS[appKey].hint+'</p>'+APPS[appKey].note;
+      }
+      fullReset();
+    });
+  });
+
+  // プリセット：重り追加
+  document.querySelectorAll('#presetCtl .palette button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const side=b.dataset.side, g=parseInt(b.dataset.g,10);
+      if(state.stacks[side].length>=6){ setBanner('これ以上のせられない！',''); return; }
+      if(state.running||state.crashed||state.settled) stopMotion();
+      state.stacks[side].push(g);
+      updateUI(); render();
+    });
+  });
+  // チップ✕
+  document.addEventListener('click',(e)=>{
+    if(e.target.classList.contains('x') && e.target.dataset.side!==undefined){
+      if(state.running||state.crashed||state.settled) stopMotion();
+      state.stacks[e.target.dataset.side].splice(parseInt(e.target.dataset.idx,10),1);
+      updateUI(); render();
+    }
+  });
+
+  // 自由ラボ：道具選択
+  document.querySelectorAll('#freeCtl .toolgrid button[data-tool]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      free.tool=b.dataset.tool;
+      document.querySelectorAll('#freeCtl .toolgrid button[data-tool]').forEach(x=>x.classList.toggle('active',x===b));
+      updateUI(); render();
+    });
+  });
+  document.getElementById('btnFreeClear').addEventListener('click',()=>{
+    stopMotion();
+    free.slots=[null,null,null,null];
+    free.stacks={endL:[],endR:[]};
+    free.endMode={endL:'weight',endR:'weight'};
+    free.disp={}; free.vels={};
+    freeEnsure(); updateUI(); render();
+  });
+
+  document.getElementById('btnRun').addEventListener('click',()=>{
+    state.pos=0; state.vel=0; state.crashed=null; state.settled=false;
+    state.particles=[]; state.sparkles=[];
+    Object.keys(free.disp).forEach(k=>free.disp[k]=0);
+    free.vels={};
+    state.running=true;
+    setBanner('どうなる…？','');
+    updateUI();
+  });
+  document.getElementById('btnReset').addEventListener('click',fullReset);
+
+  const infoBtn=document.getElementById('infoBtn');
+  const infoPanel=document.getElementById('infoPanel');
+  infoBtn.addEventListener('click',()=>{
+    const on=infoPanel.classList.toggle('show');
+    infoBtn.classList.toggle('on',on);
+  });
+
+  // キャンバスタップ
+  canvas.addEventListener('click',(e)=>{
+    const rect=canvas.getBoundingClientRect();
+    const x=(e.clientX-rect.left)*(W/rect.width);
+    const y=(e.clientY-rect.top)*(H/rect.height);
+    if(appKey==='free'){
+      const tool=free.tool;
+      if(tool==='fixed'||tool==='movable'){
+        // スロット領域（天井付近 or その列の上部）
+        for(let i=0;i<FREE_SLOTS_X.length;i++){
+          if(Math.abs(x-FREE_SLOTS_X[i])<38 && y<F_MOV_Y+F_R){
+            if(state.running||state.crashed||state.settled) stopMotion();
+            free.slots[i]=tool;
+            freeEnsure(); updateUI(); render();
+            return;
+          }
+        }
+        return;
+      }
+      if(tool==='del'){
+        if(state.running||state.crashed||state.settled) stopMotion();
+        // パーツ本体
+        for(let i=0;i<free.slots.length;i++){
+          if(!free.slots[i]) continue;
+          const py = free.slots[i]==='fixed'? F_FIX_Y : F_MOV_Y+freeEffDisp('m'+i);
+          if(Math.hypot(x-FREE_SLOTS_X[i], y-py)<F_R+6){
+            free.slots[i]=null;
+            freeEnsure(); updateUI(); render();
+            return;
+          }
+        }
+        // スタック（一番上を外す）
+        for(const k of freeHookKeys()){
+          const p=freeHookXY(k); if(!p) continue;
+          const st=free.stacks[k]||[];
+          const h=st.length*BLOCK_H;
+          if(st.length>0 && Math.abs(x-p.x)<40 && y>p.y+10 && y<p.y+24+h){
+            st.pop();
+            updateUI(); render();
+            return;
+          }
+        }
+        return;
+      }
+      if(tool==='anchor'){
+        const ends=freeEndXs();
+        if(!ends){ return; }
+        for(const [k,ex] of [['endL',ends.xL],['endR',ends.xR]]){
+          if(Math.abs(x-ex)<24 && y<CEIL_Y+40){
+            if(state.running||state.crashed||state.settled) stopMotion();
+            free.endMode[k] = free.endMode[k]==='anchor' ? 'weight' : 'anchor';
+            freeEnsure(); updateUI(); render();
+            return;
+          }
+        }
+        return;
+      }
+      // 重りツール
+      if(tool.startsWith('g')){
+        const g=parseInt(tool.slice(1),10);
+        for(const k of freeHookKeys()){
+          const p=freeHookXY(k); if(!p) continue;
+          const st=free.stacks[k]||[];
+          const h=st.length*BLOCK_H;
+          if(Math.abs(x-p.x)<40 && y>p.y-8 && y<p.y+34+h){
+            if(st.length>=6){ setBanner('これ以上のせられない！',''); return; }
+            if(state.running||state.crashed||state.settled) stopMotion();
+            st.push(g);
+            updateUI(); render();
+            return;
+          }
+        }
+        return;
+      }
+      return;
+    }
+    // プリセット：スタックタップで一番上を外す
+    if(state.running&&!state.crashed&&!state.settled) return;
+    for(const side of ['L','R']){
+      const p=stackPos(side);
+      const h=state.stacks[side].length*BLOCK_H;
+      if(state.stacks[side].length>0 && Math.abs(x-p.x)<40 && y>p.y+10 && y<p.y+24+h){
+        stopMotion();
+        state.stacks[side].pop();
+        updateUI(); render();
+        return;
+      }
+    }
+  });
+
+  // ============================================================
+  // メインループ
+  // ============================================================
+  function loop(){
+    if(state.running&&!state.crashed&&!state.settled){
+      if(appKey==='free') stepFree(); else stepPreset();
+    }
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  document.getElementById('noteBody').innerHTML='<p style="margin-top:6px;color:#ffc978;font-weight:700;">'+APPS.single.hint+'</p>'+APPS.single.note;
+  fullReset();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

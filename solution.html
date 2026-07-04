@@ -341,9 +341,68 @@
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
     animation: crystallize 0.8s ease-out forwards;
   }
+  .crystal.small {
+    width: 9px;
+    height: 9px;
+  }
   @keyframes crystallize {
     0% { opacity: 0; transform: translateY(20px) scale(0.3); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ===== 虫眼鏡（結晶の拡大観察） ===== */
+  .magnifier {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    z-index: 7;
+    animation: magAppear 0.5s ease-out;
+  }
+  .magnifier.show { display: block; }
+  @keyframes magAppear {
+    0% { opacity: 0; transform: translateX(-50%) scale(0.6); }
+    100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  }
+  .mag-lens {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 4px solid #9aa3b2;
+    background: radial-gradient(circle at 32% 28%, rgba(255,255,255,0.22), rgba(160,200,235,0.06) 60%);
+    box-shadow: 0 0 14px rgba(200,220,245,0.25), inset 0 0 12px rgba(255,255,255,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .mag-lens::after {
+    content: "";
+    position: absolute;
+    top: 8px; left: 12px;
+    width: 20px; height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.35);
+    transform: rotate(-25deg);
+    pointer-events: none;
+  }
+  .mag-handle {
+    position: absolute;
+    bottom: -22px;
+    right: -8px;
+    width: 9px;
+    height: 34px;
+    background: linear-gradient(#8a6d3b, #6b5024);
+    border-radius: 5px;
+    transform: rotate(-42deg);
+  }
+  .mag-label {
+    margin-top: 4px;
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-align: center;
+    white-space: nowrap;
   }
 
   /* ===== 食塩の3D立方体結晶 ===== */
@@ -840,6 +899,10 @@
         <div class="steam"></div><div class="steam"></div><div class="steam"></div>
       </div>
       <div class="explosion" id="explosion"></div>
+      <div class="magnifier" id="magnifier">
+        <div class="mag-lens"><div class="mag-content" id="magContent" style="display:flex;align-items:center;justify-content:center;"></div></div>
+        <div class="mag-handle"></div>
+      </div>
       <div class="paper" id="paper">
         <div class="paper-top" id="paperTop"></div>
         <div class="paper-bottom" id="paperBottom"></div>
@@ -866,7 +929,6 @@
           <!-- ハイライト -->
           <ellipse cx="23" cy="38" rx="2" ry="6" fill="rgba(255,255,255,0.25)"/>
         </svg>
-        <div class="lamp-tag" id="lampTag">アルコールランプ</div>
       </div>
     </div>
 
@@ -1096,7 +1158,6 @@
   const tubeExplosionEl = document.getElementById('tubeExplosion');
   const lampArea = document.getElementById('lampArea');
   const lampFlame = document.getElementById('lampFlame');
-  const lampTag = document.getElementById('lampTag');
   const steamArea = document.getElementById('steamArea');
 
   Object.keys(LIQUIDS).forEach(name => {
@@ -1238,7 +1299,6 @@
     isHeating = true;
     lampArea.classList.add('on');
     lampFlame.classList.add('active');
-    lampTag.textContent = "加熱中…";
     liquidEl.classList.add('boiling');
     steamArea.classList.add('active');
     liquidHeight = 58;
@@ -1257,7 +1317,6 @@
     isHeating = false;
     lampArea.classList.remove('on');
     lampFlame.classList.remove('active');
-    lampTag.textContent = "アルコールランプ";
     liquidEl.classList.remove('boiling');
     steamArea.classList.remove('active');
   }
@@ -1308,35 +1367,56 @@
   }
 
   function createCrystals(svgKey, delay) {
-    const numCrystals = 6 + Math.floor(Math.random() * 4);
+    // 少数の小さな結晶（実物サイズ感）。拡大は虫眼鏡で見せる
+    const numCrystals = 3 + Math.floor(Math.random() * 2);
     for (let i = 0; i < numCrystals; i++) {
       const crystal = document.createElement('div');
-      crystal.className = 'crystal';
+      crystal.className = 'crystal small';
       crystal.style.animationDelay = (delay * 0.2 + i * 0.15) + 's';
 
-      if (svgKey === "salt") {
-        // 食塩（NaCl）：立方体
-        crystal.appendChild(build3DCube(i));
-      } else if (svgKey === "alum") {
-        // ミョウバン：正八面体
-        crystal.appendChild(build3DOcta(i));
-      } else if (svgKey === "copper_sulfate") {
-        // 硫酸銅：青い柱状結晶
-        crystal.appendChild(build3DPrism(i));
-      } else {
-        crystal.innerHTML = SVG[svgKey];
-        const bgDiv = document.createElement('div');
-        bgDiv.style.position = 'absolute';
-        bgDiv.style.inset = '-2px';
-        bgDiv.style.background = 'rgba(255,255,255,0.08)';
-        bgDiv.style.borderRadius = '4px';
-        bgDiv.style.zIndex = '-1';
-        crystal.style.position = 'relative';
-        crystal.appendChild(bgDiv);
-      }
+      const scaler = document.createElement('div');
+      scaler.style.transform = 'scale(0.35)';
+      scaler.style.transformOrigin = '0 0';
+      scaler.appendChild(buildCrystalVisual(svgKey, i));
+      crystal.appendChild(scaler);
 
       crystalsDisplayEl.appendChild(crystal);
     }
+    showMagnifier(svgKey);
+  }
+
+  // 結晶の見た目を作る（3D or SVG）
+  function buildCrystalVisual(svgKey, i) {
+    if (svgKey === "salt") return build3DCube(i);
+    if (svgKey === "alum") return build3DOcta(i);
+    if (svgKey === "copper_sulfate") return build3DPrism(i);
+    const d = document.createElement('div');
+    d.style.width = '24px';
+    d.style.height = '24px';
+    d.innerHTML = SVG[svgKey];
+    return d;
+  }
+
+  // 虫眼鏡に拡大した結晶を表示
+  const magnifierEl = document.getElementById('magnifier');
+  const magContentEl = document.getElementById('magContent');
+  let magKeys = [];
+  function showMagnifier(svgKey) {
+    if (!magKeys.includes(svgKey)) magKeys.push(svgKey);
+    magContentEl.innerHTML = '';
+    magKeys.slice(0, 2).forEach(k => {
+      const scaler = document.createElement('div');
+      scaler.style.transform = 'scale(1.8)';
+      scaler.style.margin = '0 8px';
+      scaler.appendChild(buildCrystalVisual(k, 0));
+      magContentEl.appendChild(scaler);
+    });
+    magnifierEl.classList.add('show');
+  }
+  function hideMagnifier() {
+    magKeys = [];
+    magContentEl.innerHTML = '';
+    magnifierEl.classList.remove('show');
   }
 
   function build3DCube(i) {
@@ -1595,7 +1675,7 @@
       liquidEl.style.background = "rgba(220, 235, 245, 0.12)";
       liquidEl.style.height = '0%';
       updateSolidsDisplay();
-      crystalsDisplayEl.innerHTML = '';
+      crystalsDisplayEl.innerHTML = ''; hideMagnifier();
       updateBubbles(false);
       paperEl.classList.remove('show');
       labelEl.textContent = "";
@@ -1692,7 +1772,7 @@
     liquidEl.style.background = "rgba(220, 235, 245, 0.12)";
     liquidEl.style.height = '0%';
     updateSolidsDisplay();
-    crystalsDisplayEl.innerHTML = '';
+    crystalsDisplayEl.innerHTML = ''; hideMagnifier();
     updateBubbles(false);
     beakerEl.classList.remove('broken');
     paperEl.classList.remove('show');

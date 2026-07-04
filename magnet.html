@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>磁石のラボ｜じっけんラボ</title>
+<style>
+  :root{
+    --bg:#0e1320; --panel:#161d2e; --line:#2a3550;
+    --ink:#e8edf7; --sub:#8b97b3;
+    --accent:#5b8cff; --accent-soft:#243456;
+    --north:#ff5b6e; --south:#4ea3ff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    display:flex;justify-content:center;min-height:100vh;
+  }
+  .app{width:100%;max-width:480px;display:flex;flex-direction:column;min-height:100vh;}
+  header{padding:16px 16px 10px;border-bottom:1px solid var(--line);}
+  .crumb{font-size:12px;color:var(--sub);margin-bottom:4px;}
+  h1{font-size:19px;margin:0;letter-spacing:.02em;}
+  h1 .accent{color:var(--accent);}
+  .lead{font-size:12.5px;color:var(--sub);margin:6px 0 0;line-height:1.65;}
+
+  .stage-wrap{position:relative;padding:14px 14px 0;}
+  .rose{position:absolute;top:24px;right:26px;font-size:11px;color:var(--sub);
+    text-align:center;z-index:5;pointer-events:none;line-height:1.15;}
+  .rose b{color:var(--north);font-size:13px;}
+  .stage{position:relative;width:100%;aspect-ratio:1/1;
+    background:radial-gradient(circle at 50% 50%,#131b2e 0%,#0c1120 82%);
+    border:1px solid var(--line);border-radius:16px;overflow:hidden;touch-action:none;}
+  svg.field{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  .hint{position:absolute;left:0;right:0;bottom:8px;text-align:center;
+    font-size:11px;color:var(--sub);pointer-events:none;transition:opacity .4s;}
+
+  .controls{padding:14px;display:flex;flex-direction:column;gap:12px;}
+  .toolbar{display:flex;gap:8px;}
+  .tool{flex:1;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    border-radius:12px;padding:11px 6px;font-size:13px;font-weight:600;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:4px;transition:.15s;}
+  .tool .ic{font-size:18px;line-height:1;}
+  .tool small{font-size:10px;color:var(--sub);font-weight:500;}
+  .tool.active{border-color:var(--accent);background:var(--accent-soft);}
+  .tool.active small{color:var(--ink);}
+  .row{display:flex;gap:8px;}
+  .btn{flex:1;border:1px solid var(--line);background:var(--panel);color:var(--ink);
+    border-radius:12px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;transition:.12s;}
+  .btn:active{transform:scale(.97);}
+  .btn.flip{color:var(--north);}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 14px;}
+  .panel h2{font-size:12px;margin:0 0 8px;color:var(--accent);letter-spacing:.04em;}
+  .ledger{display:flex;flex-direction:column;gap:6px;}
+  .lr{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;}
+  .lr .k{color:var(--sub);}
+  .lr .v{font-variant-numeric:tabular-nums;font-weight:600;}
+  .lr .v small{color:var(--sub);font-size:10px;font-weight:500;margin-left:2px;}
+  .note{font-size:11.5px;color:var(--sub);line-height:1.65;margin:9px 0 0;}
+  .empty{font-size:12px;color:var(--sub);text-align:center;padding:6px 0;}
+  footer{padding:10px 14px 22px;text-align:center;}
+  footer a{color:var(--sub);font-size:12px;text-decoration:none;}
+</style>
+</head>
+<body data-subject="physics">
+<div class="app">
+  <header>
+    <div class="crumb">じっけんラボ ／ 物理</div>
+    <h1>磁石の<span class="accent">ラボ</span></h1>
+    <p class="lead">棒磁石のまわりに方位磁針を置くと、針はどちらを向くかな？<br>針の赤い先（N極）は、磁力線にそって N極から S極へと向くよ。</p>
+  </header>
+
+  <div class="stage-wrap">
+    <div class="rose"><b>N 北</b><br>↑</div>
+    <div class="stage" id="stage">
+      <svg class="field" id="svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet"></svg>
+      <div class="hint" id="hint">磁針を置くモードでタップしてみよう</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="toolbar" id="toolbar">
+      <button class="tool active" data-tool="compass"><span class="ic">🧭</span>方位磁針<small>タップで置く</small></button>
+      <button class="tool" data-tool="move"><span class="ic">🧲</span>棒磁石<small>ドラッグで動かす</small></button>
+      <button class="tool" data-tool="erase"><span class="ic">🗑️</span>消す<small>磁針をタップ</small></button>
+    </div>
+    <div class="row">
+      <button class="btn flip" id="flip">N極とS極を反転</button>
+      <button class="btn" id="lines">磁力線 表示／非表示</button>
+    </div>
+    <div class="row"><button class="btn" id="reset">磁針をぜんぶ消す</button></div>
+
+    <div class="panel">
+      <h2>えらんだ磁針</h2>
+      <div id="readout"><div class="empty">磁針をタップすると、その場所の向きがわかるよ</div></div>
+      <p class="note" id="explain">磁針を置くと、その場所での針の向きがわかるよ。針はいつも磁力線にそうよ。</p>
+    </div>
+  </div>
+
+  <footer><a href="index.html">← じっけんラボにもどる</a></footer>
+</div>
+
+<script>
+const NS="http://www.w3.org/2000/svg", VB=400;
+const svg=document.getElementById("svg"), stage=document.getElementById("stage");
+
+const state={
+  tool:"compass", showLines:true, selected:null,
+  magnet:{cx:200,cy:200,len:190,w:30,polarity:+1}, // polarity +1 → 右がN
+  compasses:[], idc:0,
+};
+
+function poles(){
+  const m=state.magnet, half=m.len/2-8;
+  const nx=m.cx+m.polarity*half, sx=m.cx-m.polarity*half;
+  return {N:{x:nx,y:m.cy,q:+1}, S:{x:sx,y:m.cy,q:-1}};
+}
+function magnetFieldAt(px,py){   // 棒磁石のみの生ベクトル(磁力線用)
+  let mx=0,my=0;
+  const STR=9000, {N,S}=poles();
+  for(const p of [N,S]){
+    let dx=px-p.x,dy=py-p.y,r2=dx*dx+dy*dy;
+    if(r2<64)r2=64;
+    const r=Math.sqrt(r2), f=STR*p.q/r2;
+    mx+=f*dx/r; my+=f*dy/r;
+  }
+  return {x:mx,y:my,mag:Math.hypot(mx,my)};
+}
+function fieldAt(px,py){
+  // 針は常に棒磁石の磁力線にそう(地磁気は見せない方針)
+  const f=magnetFieldAt(px,py);
+  if(f.mag<1e-6) return {x:0,y:-1,mag:0};   // 磁場がほぼ無い所は北
+  return {x:f.x/f.mag, y:f.y/f.mag, mag:f.mag};
+}
+
+function el(tag,a){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function txt(e,s){e.textContent=s;return e;}
+function clearSvg(){while(svg.firstChild)svg.removeChild(svg.firstChild);}
+
+function addDefs(){
+  const defs=el("defs",{});
+  const mk=(id,c1,c2)=>{
+    const g=el("linearGradient",{id,x1:"0",y1:"0",x2:"0",y2:"1"});
+    g.appendChild(el("stop",{offset:"0","stop-color":c1}));
+    g.appendChild(el("stop",{offset:"1","stop-color":c2}));
+    return g;
+  };
+  defs.appendChild(mk("gN","#ff7384","#d83a4d"));
+  defs.appendChild(mk("gS","#6fb6ff","#2f7fe0"));
+  svg.appendChild(defs);
+}
+
+function traceLine(startX,startY,dir){
+  // dir=+1: 磁場順方向(N→S), -1: 逆方向
+  let x=startX, y=startY;
+  let d=`M ${x.toFixed(1)} ${y.toFixed(1)}`;
+  for(let step=0;step<400;step++){
+    const f=magnetFieldAt(x,y);
+    if(f.mag<1e-6) break;
+    x+=dir*f.x/f.mag*4; y+=dir*f.y/f.mag*4;
+    if(x<-60||x>VB+60||y<-60||y>VB+60) break;
+    const Sp=poles().S, Np=poles().N;
+    if(dir>0 && Math.hypot(x-Sp.x,y-Sp.y)<13){d+=` L ${Sp.x} ${Sp.y}`;break;}
+    if(dir<0 && Math.hypot(x-Np.x,y-Np.y)<13){d+=` L ${Np.x} ${Np.y}`;break;}
+    d+=` L ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }
+  return d;
+}
+function drawFieldLines(){
+  if(!state.showLines) return;
+  const m=state.magnet, N=poles().N, S=poles().S;
+  const spreads=[18,46,78,115,150]; // 度: 軸からの開き(片側)
+  const lines=[];
+  const nDir=m.polarity>0?1:-1;     // N極が右(+x)か左か
+  const sDir=-nDir;                 // S極の外向き
+  for(const s of spreads){
+    const rad=s*Math.PI/180;
+    for(const sign of [-1,1]){      // 上(-)・下(+)
+      // N極から順方向に追跡(N→S)
+      const nx=N.x+Math.cos(rad)*nDir*13, ny=N.y+Math.sin(rad)*sign*13;
+      lines.push(traceLine(nx,ny,1));
+      // S極の外側から入ってくる線を、S極から逆方向に追跡して補う
+      const sx=S.x+Math.cos(rad)*sDir*13, sy=S.y+Math.sin(rad)*sign*13;
+      lines.push(traceLine(sx,sy,-1));
+    }
+  }
+  // 磁石の真上・真下(軸に垂直)
+  for(const sign of [-1,1]){
+    lines.push(traceLine(N.x, N.y+sign*13, 1));
+    lines.push(traceLine(S.x, S.y+sign*13, -1));
+  }
+  for(const d of lines){
+    svg.appendChild(el("path",{d,fill:"none",stroke:"#f5a623","stroke-width":1.6,
+      "stroke-linecap":"round",opacity:.85}));
+  }
+}
+
+function drawMagnet(){
+  const m=state.magnet, halfL=m.len/2, halfW=m.w/2, nRight=m.polarity>0;
+  const g=el("g",{transform:`translate(${m.cx} ${m.cy})`});
+  const leftIsN=!nRight;
+  g.appendChild(el("rect",{x:-halfL,y:-halfW,width:halfL,height:m.w,fill:leftIsN?"url(#gN)":"url(#gS)"}));
+  g.appendChild(el("rect",{x:0,y:-halfW,width:halfL,height:m.w,fill:leftIsN?"url(#gS)":"url(#gN)"}));
+  // 角丸マスクのかわりに外枠
+  g.appendChild(el("rect",{x:-halfL,y:-halfW,width:m.len,height:m.w,rx:7,fill:"none",
+    stroke:"#0b0f1a","stroke-width":2}));
+  g.appendChild(el("line",{x1:0,y1:-halfW,x2:0,y2:halfW,stroke:"#0b0f1a","stroke-width":2}));
+  g.appendChild(txt(el("text",{x:-halfL/2,y:7,"text-anchor":"middle","font-size":22,"font-weight":"800",fill:"#fff"}),leftIsN?"N":"S"));
+  g.appendChild(txt(el("text",{x:halfL/2,y:7,"text-anchor":"middle","font-size":22,"font-weight":"800",fill:"#fff"}),leftIsN?"S":"N"));
+  svg.appendChild(g);
+}
+
+function drawCompass(c){
+  const ang=(c.ang!==undefined)?c.ang:targetAng(c);
+  const sel=(state.selected===c.id), R=15;
+  const g=el("g",{transform:`translate(${c.x} ${c.y})`,style:"cursor:pointer"});
+  g.appendChild(el("circle",{r:R,fill:"#0c1322",stroke:sel?"#5b8cff":"#374564",
+    "stroke-width":sel?2.4:1.6}));
+  g.appendChild(txt(el("text",{x:0,y:-R+5.5,"text-anchor":"middle","font-size":6.5,fill:"#6b7799"}),"N"));
+  // 針: N側(赤)が磁力線の向き
+  const nx=Math.cos(ang)*R*0.8, ny=Math.sin(ang)*R*0.8;
+  const per=ang+Math.PI/2, bx=Math.cos(per)*3, by=Math.sin(per)*3;
+  g.appendChild(el("path",{d:`M ${nx} ${ny} L ${bx} ${by} L ${-bx} ${-by} Z`,fill:"#ff5b6e"}));
+  g.appendChild(el("path",{d:`M ${-nx} ${-ny} L ${bx} ${by} L ${-bx} ${-by} Z`,fill:"#dfe6f5"}));
+  g.appendChild(el("circle",{r:2.3,fill:"#aeb9d4"}));
+  svg.appendChild(g);
+}
+
+function targetAng(c){
+  const f=fieldAt(c.x,c.y);
+  return Math.atan2(f.y,f.x);
+}
+function render(){
+  clearSvg(); addDefs();
+  drawFieldLines(); drawMagnet();
+  for(const c of state.compasses) drawCompass(c);
+}
+
+// ---- 針の回転アニメーション ----
+function shortestDelta(from,to){
+  let d=(to-from)%(Math.PI*2);
+  if(d>Math.PI) d-=Math.PI*2;
+  if(d<-Math.PI) d+=Math.PI*2;
+  return d;
+}
+let animating=false;
+function animate(){
+  let moving=false;
+  for(const c of state.compasses){
+    if(c.ang===undefined) continue;
+    const tgt=targetAng(c);
+    const d=shortestDelta(c.ang,tgt);
+    if(Math.abs(d)>0.004){
+      c.ang+=d*0.18;          // イージング(揺れず素直に整定)
+      moving=true;
+    }else{
+      c.ang=tgt;
+    }
+  }
+  if(moving){ render(); requestAnimationFrame(animate); }
+  else{ animating=false; render(); }
+}
+function kick(){ if(!animating){ animating=true; requestAnimationFrame(animate); } }
+
+
+function toVB(cx,cy){
+  const r=stage.getBoundingClientRect();
+  return {x:(cx-r.left)/r.width*VB, y:(cy-r.top)/r.height*VB};
+}
+function bearing(f){let d=Math.atan2(f.x,-f.y)*180/Math.PI;if(d<0)d+=360;return d;}
+function dirName(d){return ["北","北東","東","南東","南","南西","西","北西"][Math.round(d/45)%8];}
+function fmt(n){const s=n.toFixed(1);return s.endsWith(".0")?s.slice(0,-2):s;}
+
+function updateReadout(){
+  const ro=document.getElementById("readout"), ex=document.getElementById("explain");
+  const c=state.compasses.find(x=>x.id===state.selected);
+  if(!c){ro.innerHTML='<div class="empty">磁針をタップすると、その場所の向きがわかるよ</div>';
+    ex.textContent="磁針を置くと、その場所での針の向きがわかるよ。針はいつも磁力線にそうよ。";return;}
+  const f=fieldAt(c.x,c.y), deg=bearing(f);
+  const {N,S}=poles();
+  const dN=Math.hypot(c.x-N.x,c.y-N.y), dS=Math.hypot(c.x-S.x,c.y-S.y);
+  ro.innerHTML=`<div class="ledger">
+    <div class="lr"><span class="k">N極（赤）が向く方角</span><span class="v">${dirName(deg)}</span></div>
+    <div class="lr"><span class="k">北から時計回りに</span><span class="v">${Math.round(deg)}<small>度</small></span></div>
+  </div>`;
+  if(dN<dS) ex.textContent="磁石のN極に近い場所。針の赤(N)はN極から押し出されるように外を向くよ。";
+  else ex.textContent="磁石のS極に近い場所。針の赤(N)はS極に引き寄せられるように向くよ。";
+}
+
+let dragging=false, dragOff={x:0,y:0};
+function nearMagnet(p){const m=state.magnet;return Math.abs(p.x-m.cx)<m.len/2+10&&Math.abs(p.y-m.cy)<m.w/2+10;}
+function hitCompass(p){for(let i=state.compasses.length-1;i>=0;i--){const c=state.compasses[i];if(Math.hypot(p.x-c.x,p.y-c.y)<18)return c;}return null;}
+
+stage.addEventListener("pointerdown",e=>{
+  const p=toVB(e.clientX,e.clientY);
+  if(state.tool==="move"){
+    if(nearMagnet(p)){dragging=true;dragOff={x:p.x-state.magnet.cx,y:p.y-state.magnet.cy};stage.setPointerCapture(e.pointerId);}
+    return;
+  }
+  if(state.tool==="erase"){
+    const c=hitCompass(p);
+    if(c){state.compasses=state.compasses.filter(x=>x!==c);if(state.selected===c.id)state.selected=null;render();updateReadout();}
+    return;
+  }
+  const hit=hitCompass(p);
+  if(hit){state.selected=hit.id;render();updateReadout();return;}
+  if(nearMagnet(p))return;
+  const c={id:++state.idc,x:p.x,y:p.y,ang:-Math.PI/2}; // 最初は上(北)向きに刺す
+  state.compasses.push(c); state.selected=c.id;
+  document.getElementById("hint").style.opacity=0;
+  render(); updateReadout(); kick();   // 正しい向きへ回転
+});
+stage.addEventListener("pointermove",e=>{
+  if(!dragging)return;
+  const p=toVB(e.clientX,e.clientY);
+  const pad=state.magnet.len/2;
+  state.magnet.cx=Math.max(pad,Math.min(VB-pad,p.x-dragOff.x));
+  state.magnet.cy=Math.max(state.magnet.w,Math.min(VB-state.magnet.w,p.y-dragOff.y));
+  render(); updateReadout(); kick();
+});
+stage.addEventListener("pointerup",()=>dragging=false);
+stage.addEventListener("pointercancel",()=>dragging=false);
+
+document.getElementById("toolbar").addEventListener("click",e=>{
+  const b=e.target.closest(".tool");if(!b)return;
+  state.tool=b.dataset.tool;
+  document.querySelectorAll(".tool").forEach(t=>t.classList.toggle("active",t===b));
+  const h=document.getElementById("hint");
+  h.textContent={compass:"磁針を置くモードでタップしてみよう",move:"棒磁石をドラッグして動かそう",erase:"消したい磁針をタップ"}[state.tool];
+  h.style.opacity=1;
+});
+document.getElementById("flip").addEventListener("click",()=>{state.magnet.polarity*=-1;render();updateReadout();kick();});
+document.getElementById("lines").addEventListener("click",()=>{state.showLines=!state.showLines;render();});
+document.getElementById("reset").addEventListener("click",()=>{
+  state.compasses=[];state.selected=null;render();updateReadout();
+  document.getElementById("hint").style.opacity=1;
+});
+
+render(); updateReadout();
+</script>
+</body>
+</html>
