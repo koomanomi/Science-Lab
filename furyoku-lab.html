@@ -102,6 +102,11 @@
   .feedback.ok .head{color:var(--good)} .feedback.ng .head{color:var(--danger)}
   .feedback ol{margin:4px 0 0;padding-left:1.4em}
   .feedback .tip{margin-top:8px;font-size:12.5px;color:var(--accent)}
+  .help-btn{display:block;width:100%;margin-top:10px;padding:11px;border-radius:10px;border:1px dashed var(--accent);background:rgba(255,180,84,.06);color:var(--accent);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
+  .help-btn:active{background:rgba(255,180,84,.18)}
+  .help-box{margin-top:10px;border:1px solid var(--panel-edge);border-radius:12px;padding:10px 14px;font-size:14px;line-height:1.85}
+  .help-box ol{margin:4px 0 0;padding-left:1.4em}
+  .help-box .next-q{margin-top:8px;font-size:12.5px;color:var(--text-dim)}
   .q-fig{margin-top:12px;background:#11151a;border:1px solid var(--panel-edge);border-radius:12px;padding:6px}
   .q-fig svg{display:block;width:100%;max-width:420px;margin:0 auto;height:auto}
   .ex-sec{margin-top:12px}
@@ -234,10 +239,10 @@
       <div class="unit" id="qUnit"></div>
       <button class="big-btn" id="qCheck">こたえあわせ</button>
     </div>
+    <button class="help-btn" id="qHelp">🤔 わからない…</button>
+    <div id="qHelpBox"></div>
     <div id="qFeedback"></div>
     <div class="btn-row">
-      <button class="tool-btn" id="qHint">ヒント</button>
-      <button class="tool-btn" id="qShow">答えと解説</button>
       <button class="tool-btn" id="qLab">じっけんでたしかめる</button>
       <div style="flex:1"></div>
       <button class="big-btn" id="qNext">つぎの問題 →</button>
@@ -955,7 +960,7 @@ function figSVG(q,reveal){
 }
 
 // ===== もんだいUI =====
-const qs={cat:'all',q:null,answered:false,tried:0,correct:0,streak:0,best:0};
+const qs={cat:'all',q:null,answered:false,help:0,tried:0,correct:0,streak:0,best:0};
 try{qs.best=parseInt(localStorage.getItem('furyoku-best')||'0',10)||0;}catch(e){}
 function buildCats(){
   const cc=$('catChips');
@@ -966,7 +971,8 @@ function buildCats(){
 function renderCats(){document.querySelectorAll('#catChips .chip').forEach(b=>b.classList.toggle('active',b.dataset.id===qs.cat));}
 function renderScore(){$('sCorrect').textContent=qs.correct;$('sTried').textContent=qs.tried;$('sStreak').textContent=qs.streak;$('sBest').textContent=qs.best;}
 function newQ(){
-  qs.q=genQ(qs.cat); qs.answered=false;
+  qs.q=genQ(qs.cat); qs.answered=false; qs.help=0;
+  $('qHelpBox').innerHTML=''; renderHelpBtn();
   $('qTag').textContent=CATS.find(c=>c.id===qs.q.cat).name;
   $('qText').innerHTML=qs.q.text+'<br><span class="q-ask">'+qs.q.ask+'</span>';
   $('qUnit').textContent=qs.q.unit;
@@ -984,14 +990,15 @@ function checkQ(){
   if(isNaN(v)){$('qInput').focus();return;}
   qs.answered=true; qs.tried++;
   const ok=Math.abs(v-qs.q.ans)<=Math.max(1e-6,Math.abs(qs.q.ans)*0.002);
-  if(ok){qs.correct++;qs.streak++;if(qs.streak>qs.best){qs.best=qs.streak;try{localStorage.setItem('furyoku-best',String(qs.best));}catch(e){}}}
+  if(ok){qs.correct++; if(qs.help===0){qs.streak++;if(qs.streak>qs.best){qs.best=qs.streak;try{localStorage.setItem('furyoku-best',String(qs.best));}catch(e){}}}}
   else qs.streak=0;
   renderScore();
+  $('qHelpBox').innerHTML=''; renderHelpBtn();
   showExplain(ok?'ok':'ng',v);
 }
 function showExplain(kind,v){
   const q=qs.q;
-  const head=kind==='ok'?'◎ 正解！':kind==='ng'?'× ざんねん':'答えと解説';
+  const head=kind==='ok'?(qs.help>0?'◎ 正解！（解説を見ながら）　次は自分だけでとけるかな？':'◎ 正解！'):kind==='ng'?'× ざんねん':'答えと解説';
   const ansLine=`正解：<b>${fmt(q.ans)} ${q.unit}</b>${kind==='ng'?`　（あなたの答え：${fmt(v)} ${q.unit}）`:''}`;
   const steps='<ol>'+q.steps.map(s=>'<li>'+s+'</li>').join('')+'</ol>';
   const trap=TRAPS[q.cat+':'+q.m];
@@ -1008,11 +1015,31 @@ function showExplain(kind,v){
 $('qCheck').onclick=checkQ;
 $('qInput').addEventListener('keydown',e=>{if(e.key==='Enter'){qs.answered?newQ():checkQ();}});
 $('qNext').onclick=newQ;
-$('qShow').onclick=()=>{
-  if(!qs.answered){qs.answered=true;qs.tried++;qs.streak=0;renderScore();}
-  showExplain('show');
+// 「わからない」：考え方 → とき方を1行ずつ → 答え、と少しずつ見せる
+function helpStages(){return qs.q.steps.length;}   // 1:考え方とヒント, 2..n:とき方, n+1:答え
+function renderHelpBtn(){
+  const b=$('qHelp');
+  if(qs.answered){b.style.display='none';return;}
+  b.style.display='block';
+  const n=helpStages();
+  b.textContent=qs.help===0?'🤔 わからない…（考え方を見る）':qs.help<n?`👀 とき方をもう1行見る（${qs.help}/${n-1}）`:'💡 答えと解説を見る';
+}
+function renderHelp(){
+  const q=qs.q, shown=q.steps.slice(0,qs.help-1);
+  let h=`<div class="ex-sec point" style="margin-top:0"><h3>考え方</h3>${POINTS[q.cat]}</div>`;
+  h+=`<div class="ex-sec"><h3>ヒント</h3>${q.hint}</div>`;
+  if(shown.length) h+=`<div class="ex-sec"><h3>とき方</h3><ol>${shown.map(x=>'<li>'+x+'</li>').join('')}</ol></div>`;
+  h+=`<div class="next-q">ここまでで分かったら、答えを入れてみよう。</div>`;
+  $('qHelpBox').innerHTML=`<div class="help-box">${h}</div>`;
+}
+$('qHelp').onclick=()=>{
+  if(qs.answered) return;
+  const n=helpStages();
+  if(qs.help<n){ qs.help++; renderHelp(); renderHelpBtn(); return; }
+  // 最後：答えと解説（自分では解けなかった）
+  qs.answered=true; qs.tried++; qs.streak=0; renderScore();
+  $('qHelpBox').innerHTML=''; renderHelpBtn(); showExplain('show');
 };
-$('qHint').onclick=()=>{if(!qs.answered)$('qFeedback').innerHTML=`<div class="feedback" style="border:1px solid var(--panel-edge)">ヒント：${qs.q.hint}</div>`;};
 $('qLab').onclick=()=>{
   const s=qs.q.setup;
   st.S=s.S; st.H=s.H; st.W=Math.round(s.rhoO*s.S*s.H); syncRho(); st.liq=s.liq; st.hang=s.hang; st.overflow=!!s.overflow; st.overflowMax=0;
