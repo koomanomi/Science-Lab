@@ -44,11 +44,18 @@
   input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;background:var(--panel-edge);outline:none;margin:8px 0}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #1a1a1a}
   input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #1a1a1a}
+  .stepper{display:flex;align-items:center;gap:10px}
+  .st-btn{flex:none;width:38px;height:38px;border-radius:10px;border:1px solid var(--panel-edge);background:#161a1e;color:var(--text);font-size:20px;font-weight:700;cursor:pointer;font-family:inherit;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+  .st-btn:active{background:var(--accent);color:#16110a}
+  .ctrl-label .dim-s{color:var(--text-dim);font-weight:400;font-size:11px}
+  .dens-box{margin-top:12px;background:#11151a;border:1px solid var(--panel-edge);border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.7;font-variant-numeric:tabular-nums}
+  .dens-box b{color:var(--accent)} .dens-box .f{color:#9fd2ff;font-weight:700} .dens-box .s{color:#ffb4a0;font-weight:700} .dens-box .n{color:var(--good);font-weight:700}
   .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
   .tool-btn{background:#161a1e;color:var(--text-dim);border:1px solid var(--panel-edge);border-radius:10px;padding:10px 13px;font-size:13px;cursor:pointer;font-family:inherit;transition:.12s}
   .tool-btn:hover{color:var(--text);border-color:#3a4450}
   .tool-btn.on{color:#16110a;background:var(--accent);border-color:var(--accent);font-weight:700}
   .tool-btn.cut{border-color:var(--danger);color:var(--danger)}
+  .app-note{text-align:center;font-size:12px;color:var(--text-dim);margin-top:6px}
   .hint{margin-top:10px;font-size:12.5px;color:var(--text-dim);line-height:1.6}
   .hint b{color:var(--text)}
 
@@ -95,6 +102,19 @@
   .feedback.ok .head{color:var(--good)} .feedback.ng .head{color:var(--danger)}
   .feedback ol{margin:4px 0 0;padding-left:1.4em}
   .feedback .tip{margin-top:8px;font-size:12.5px;color:var(--accent)}
+  .q-fig{margin-top:12px;background:#11151a;border:1px solid var(--panel-edge);border-radius:12px;padding:6px}
+  .q-fig svg{display:block;width:100%;max-width:420px;margin:0 auto;height:auto}
+  .ex-sec{margin-top:12px}
+  .ex-sec h3{margin:0 0 4px;font-size:13px;letter-spacing:.06em;color:var(--text-dim);font-weight:700}
+  .ex-sec.point{background:rgba(255,180,84,.07);border:1px solid rgba(255,180,84,.3);border-radius:10px;padding:8px 12px}
+  .ex-sec.point h3{color:var(--accent)}
+  .ex-sec.trap{background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.3);border-radius:10px;padding:8px 12px}
+  .ex-sec.trap h3{color:var(--danger)}
+  .ex-sec.tipb{background:rgba(111,184,255,.06);border:1px solid rgba(111,184,255,.3);border-radius:10px;padding:8px 12px}
+  .ex-sec.tipb h3{color:var(--buoy)}
+  .feedback .ans-line{font-size:15px;margin-bottom:4px}
+  .feedback.show{background:rgba(139,151,163,.06);border:1px solid var(--panel-edge)}
+  .feedback.show .head{color:var(--text)}
   footer{text-align:center;color:var(--text-dim);font-size:11.5px;padding:24px 16px 32px}
 </style>
 </head>
@@ -122,16 +142,25 @@
 <div class="layout" id="labView">
   <div class="board-card">
     <canvas id="board"></canvas>
+    <div class="app-note" id="appNote"></div>
 
     <div class="ctrl">
-      <div class="ctrl-label">物体の材料<span id="rhoOLabel"></span></div>
+      <div class="ctrl-label">材料でえらぶ<span class="dim-s">えらぶと重さが決まる</span></div>
       <div class="chips" id="matChips"></div>
-      <input type="range" id="rhoOSlider" min="0.1" max="9" step="0.1">
     </div>
     <div class="ctrl">
-      <div class="ctrl-label">物体の体積<span id="vLabel"></span></div>
-      <input type="range" id="vSlider" min="10" max="200" step="10">
+      <div class="ctrl-label">おもりの重さ<span id="wLabel"></span></div>
+      <div class="stepper"><button class="st-btn" data-t="W" data-d="-1">−</button><input type="range" id="wSlider" min="1" max="2000" step="1"><button class="st-btn" data-t="W" data-d="1">＋</button></div>
     </div>
+    <div class="ctrl">
+      <div class="ctrl-label">おもりの底面積<span id="sLabel"></span></div>
+      <div class="stepper"><button class="st-btn" data-t="S" data-d="-1">−</button><input type="range" id="sSlider" min="2" max="50" step="1"><button class="st-btn" data-t="S" data-d="1">＋</button></div>
+    </div>
+    <div class="ctrl">
+      <div class="ctrl-label">おもりの高さ<span id="hLabel"></span></div>
+      <div class="stepper"><button class="st-btn" data-t="H" data-d="-0.5">−</button><input type="range" id="hSlider" min="1" max="6" step="0.5"><button class="st-btn" data-t="H" data-d="0.5">＋</button></div>
+    </div>
+    <div class="dens-box" id="densBox"></div>
     <div class="ctrl">
       <div class="ctrl-label">液体<span id="rhoLLabel"></span></div>
       <div class="chips" id="liqChips"></div>
@@ -199,6 +228,7 @@
   <div class="card">
     <div class="q-tag" id="qTag"></div>
     <div class="q-text" id="qText"></div>
+    <div class="q-fig" id="qFig"></div>
     <div class="answer-row">
       <input id="qInput" type="text" inputmode="decimal" autocomplete="off" placeholder="こたえ">
       <div class="unit" id="qUnit"></div>
@@ -207,6 +237,7 @@
     <div id="qFeedback"></div>
     <div class="btn-row">
       <button class="tool-btn" id="qHint">ヒント</button>
+      <button class="tool-btn" id="qShow">答えと解説</button>
       <button class="tool-btn" id="qLab">じっけんでたしかめる</button>
       <div style="flex:1"></div>
       <button class="big-btn" id="qNext">つぎの問題 →</button>
@@ -214,20 +245,20 @@
   </div>
 </div>
 
-<footer>浮力ラボ v1.0 — 密度・浮力・ばねばかり・台ばかり</footer>
+<footer>浮力ラボ v1.1 — 密度・浮力・ばねばかり・台ばかり</footer>
 
 <script>
 (function(){
 /*PHYS-START*/
 // ===== 物理モデル（単位: g, cm, cm³, g/cm³。力は「g」で表す中学受験式） =====
-const OBJ_H=5;      // 物体（直方体）の高さ cm。底面積 = 体積 ÷ 5
+const OBJ_H=5;      // もんだいで使うふつうの高さ cm（物体は底面積×高さの直方体）
 const SC=100;       // ビーカーの内側の底面積 cm²（10cm×10cm）
 const H_RIM=13;     // ビーカーのふちの高さ cm
 const H_SPOUT=10;   // あふれ口の高さ cm
 const L0=800;       // ふつうのビーカーの液体 cm³（深さ8cm）
 const V_FULL=1000;  // あふれ口ビーカーの液体 cm³（あふれ口ぎりぎり）
 const BASE=200;     // 容器の重さ g
-const HOOK_MIN=0.5, HOOK_MAX=11;
+const HOOK_MIN=0.5, HOOK_MAX=12;
 const G=980;        // 重力加速度 cm/s²
 const EXT_FULL=4.75;// ばねばかりが最大目盛りまでのびる長さ cm
 function scaleRange(W){return W<=500?500:W<=1000?1000:2000;}   // 物体に合ったばねばかりを使う
@@ -242,16 +273,17 @@ function hangEq(p,S,W,k,A,dAt){
 
 // 物体の底を高さ y に固定したときの、水面の高さ h と液体中の深さ d
 function levelFor(L,S,V,y){
-  const hFull=(L+V)/SC;
-  if(hFull>=y+OBJ_H) return {h:hFull,d:OBJ_H};
+  const H=V/S, hFull=(L+V)/SC;
+  if(hFull>=y+H) return {h:hFull,d:H};
   const h0=L/SC;
   if(h0<=y) return {h:h0,d:0};
   const h=(L-S*y)/(SC-S);
   return {h,d:h-y};
 }
 
-// p: {rhoO,V,rhoL,hookY,hang,overflow,overflowMax}
+// p: {rhoO,S,H,rhoL,hookY,hang,overflow,overflowMax}  体積V＝S×H
 function solve(p){
+  p={...p,V:p.S*p.H};
   // あふれて液体がへると物体の位置も変わるので、つりあうまでくり返す
   let r=solve1(p);
   for(let i=0;i<8&&p.overflow;i++){
@@ -262,7 +294,7 @@ function solve(p){
   return r;
 }
 function solve1(p){
-  const S=p.V/OBJ_H, W=p.rhoO*p.V, dF=W/(p.rhoL*S);
+  const S=p.S, H=p.H, W=p.rhoO*p.V, dF=W/(p.rhoL*S);
   let om=p.overflow?p.overflowMax:0;
   let L=p.overflow?V_FULL-om:L0;
   const kind=p.rhoO<p.rhoL-1e-9?'float':(p.rhoO>p.rhoL+1e-9?'sink':'neutral');
@@ -271,7 +303,7 @@ function solve1(p){
   if(p.hang){
     const ys=hangEq(p,S,W,k,A,yy=>levelFor(L,S,p.V,yy).d);
     const r=levelFor(L,S,p.V,ys);
-    if(dF<=OBJ_H+1e-9 && p.rhoL*S*r.d>W+1e-7){
+    if(dF<=H+1e-9 && p.rhoL*S*r.d>W+1e-7){
       d=dF; h=(L+S*d)/SC; y=h-d; pos='hang-float';   // 浮いて糸がたるむ
     }else{ h=r.h; d=r.d; y=ys; pos='hang-taut'; }
   }else if(kind==='float'){
@@ -279,18 +311,18 @@ function solve1(p){
   }else if(kind==='sink'){
     const r=levelFor(L,S,p.V,0); h=r.h; d=r.d; y=0; pos='free-sink';
   }else{
-    h=(L+p.V)/SC; d=OBJ_H; y=Math.max(0,(h-OBJ_H)/2); pos='free-neutral';
+    h=(L+p.V)/SC; d=H; y=Math.max(0,(h-H)/2); pos='free-neutral';
   }
   // あふれ口：水面はあふれ口より上にならない。あふれた分はカップへ
   if(p.overflow && h>H_SPOUT+1e-9){
     h=H_SPOUT;
     if(pos==='hang-taut'){
-      const dAt=yy=>Math.min(OBJ_H,Math.max(0,H_SPOUT-yy));
+      const dAt=yy=>Math.min(H,Math.max(0,H_SPOUT-yy));
       y=hangEq(p,S,W,k,A,dAt); d=dAt(y);
-      if(dF<=OBJ_H+1e-9 && p.rhoL*S*d>W+1e-7){ d=dF; y=h-d; pos='hang-float'; }
+      if(dF<=H+1e-9 && p.rhoL*S*d>W+1e-7){ d=dF; y=h-d; pos='hang-float'; }
     }
-    else if(pos==='free-sink') d=Math.min(OBJ_H,H_SPOUT);
-    else if(pos==='free-neutral'){ d=OBJ_H; y=Math.max(0,(h-OBJ_H)/2); }
+    else if(pos==='free-sink') d=Math.min(H,H_SPOUT);
+    else if(pos==='free-neutral'){ d=H; y=Math.max(0,(h-H)/2); }
     else { d=dF; y=h-d; }
     L=SC*h-S*d; om=V_FULL-L;
   }
@@ -303,13 +335,13 @@ function solve1(p){
 // ===== 運動（重力・浮力・水の抵抗・ばねの力で1ステップ進める） =====
 function dynLevel(L,S,V,y,overflow){
   const r=levelFor(L,S,V,y);
-  if(overflow&&r.h>H_SPOUT) return {h:H_SPOUT,d:Math.min(OBJ_H,Math.max(0,H_SPOUT-y))};
+  if(overflow&&r.h>H_SPOUT) return {h:H_SPOUT,d:Math.min(V/S,Math.max(0,H_SPOUT-y))};
   return r;
 }
 // sim:{y,v}  y:物体の底の高さcm, v:速さcm/s（上向き＋）。力は dyn（g·cm/s²）で計算
 function dynStep(sim,p,L,dt){
-  const S=p.V/OBJ_H, W=p.rhoO*p.V, m=W;
-  const r=dynLevel(L,S,p.V,sim.y,p.overflow);
+  const S=p.S, V=p.S*p.H, W=p.rhoO*V, m=W;
+  const r=dynLevel(L,S,V,sim.y,p.overflow);
   const Vsub=S*r.d;
   let F=-W*G+p.rhoL*Vsub*G;          // 重力 ＋ 浮力
   let Fw=p.rhoL*Vsub*G;              // 水が物体を押す力（台ばかりに伝わる）
@@ -320,7 +352,7 @@ function dynStep(sim,p,L,dt){
   }
   if(r.d>0){
     let fd=-0.5*p.rhoL*1.05*S*sim.v*Math.abs(sim.v);              // 水の抵抗（速さの2乗）
-    if(r.d<OBJ_H-1e-6) fd+=-2*0.3*Math.sqrt(p.rhoL*S*G*m)*sim.v;  // 水面で波を立てて止まる
+    if(r.d<p.H-1e-6) fd+=-2*0.3*Math.sqrt(p.rhoL*S*G*m)*sim.v;  // 水面で波を立てて止まる
     F+=fd; Fw+=fd;
   }
   const mEff=m+0.5*p.rhoL*Vsub;      // 水もいっしょに動かす分、動きにくくなる
@@ -348,11 +380,13 @@ const LIQS=[
   {id:'alc',  name:'アルコール',rho:0.8},
 ];
 
-const st={mat:'alum', rhoO:2.7, V:100, liq:'water', hookY:HOOK_MAX, hang:true, overflow:false, overflowMax:0, arrows:true};
+const st={mat:'alum', W:270, rhoO:2.7, S:20, H:5, V:100, liq:'water', hookY:HOOK_MAX, hang:true, overflow:false, overflowMax:0, arrows:true};
 let res=null;
 function liqObj(){return LIQS.find(l=>l.id===st.liq);}
 function matObj(){return MATS.find(m=>m.id===st.mat)||FREE_MAT;}
-function params(){return {rhoO:st.rhoO,V:st.V,rhoL:liqObj().rho,hookY:st.hookY,hang:st.hang,overflow:st.overflow,overflowMax:st.overflowMax};}
+function dens(x){return String(Math.round(x*1000)/1000);}   // 密度は小数3けたまで（0.95を1.0と見せない）
+function syncRho(){st.V=r1(st.S*st.H); st.rhoO=st.W/st.V; const hit=MATS.find(mt=>Math.abs(mt.rho-st.rhoO)<1e-9); st.mat=hit?hit.id:'free';}
+function params(){return {rhoO:st.rhoO,S:st.S,H:st.H,rhoL:liqObj().rho,hookY:st.hookY,hang:st.hang,overflow:st.overflow,overflowMax:st.overflowMax};}
 function recompute(){
   res=solve(params());
   st.overflowMax=res.overflowMax;
@@ -360,10 +394,10 @@ function recompute(){
 }
 
 // ===== キャンバス =====
-const W_=400, H_=640, PX=16;
-const CX=150, YB=566;            // ビーカー中心x、内側の底y
+const W_=400, H_=680, PX=16;
+const CX=150, YB=606;            // ビーカー中心x、内側の底y
 const BX0=CX-SC**0.5*PX/2, BX1=CX+SC**0.5*PX/2;   // 70..230
-const TABLE=620, STRING=120;
+const TABLE=660, HANG_LEN=196;   // 物体の高さ＋糸の長さ（物体が低いと糸が長い）
 const canvas=document.getElementById('board');
 const ctx=canvas.getContext('2d');
 function resizeCanvas(){
@@ -405,9 +439,9 @@ function draw(){
   ctx.fillStyle='#4a3a2a';ctx.fillRect(0,TABLE,W_,3);
 
   const m=matObj(), lq=liqObj();
-  const S=st.V/OBJ_H, wpx=Math.sqrt(S)*PX, hpx=OBJ_H*PX;
+  const S=st.S, wpx=Math.sqrt(S)*PX, hpx=st.H*PX, STRING=HANG_LEN-hpx;
   const objBot=yc(sim.y), objTop=objBot-hpx;
-  const Wt=st.rhoO*st.V, rngS=scaleRange(Wt), kS=springK(Wt), A=st.hookY+Wt/kS;
+  const Wt=st.W, rngS=scaleRange(Wt), kS=springK(Wt), A=st.hookY+Wt/kS;
   const hook0=yc(A)-hpx-STRING;            // ばねがのびていないときのフック
   const extPx=Math.min(80,anim.ext*PX);     // ばねののび
   const hookY=hook0+extPx;                  // 実際のフック位置
@@ -419,15 +453,6 @@ function draw(){
   ctx.fillRect(28,30,6,TABLE-38);
   ctx.fillRect(28,scTop-12,CX-28,5);
   ctx.fillStyle='#4a5664';ctx.fillRect(24,scTop-15,14,11);
-
-  // ===== 台ばかり =====
-  ctx.fillStyle='#2b333c';roundRect(46,TABLE-46,208,46,6);ctx.fill();
-  ctx.strokeStyle='#4a5664';ctx.lineWidth=1.5;ctx.stroke();
-  ctx.fillStyle='#3a4450';ctx.fillRect(56,TABLE-52,188,7);
-  ctx.fillStyle='#0b1410';roundRect(104,TABLE-38,92,28,5);ctx.fill();
-  ctx.fillStyle='#caa6ff';ctx.font='bold 17px ui-monospace,monospace';ctx.textAlign='center';ctx.textBaseline='middle';
-  ctx.fillText(fmt(anim.plat)+' g',150,TABLE-24);
-  ctx.fillStyle='#8b97a3';ctx.font='10px sans-serif';ctx.fillText('台ばかり',75,TABLE-24);
 
   // ===== 液体 =====
   const lvl=yc(anim.h);
@@ -548,6 +573,16 @@ function draw(){
   }
 }
 
+function drawPlat(){
+  ctx.fillStyle='#2b333c';roundRect(46,TABLE-46,208,46,6);ctx.fill();
+  ctx.strokeStyle='#4a5664';ctx.lineWidth=1.5;ctx.stroke();
+  ctx.fillStyle='#3a4450';ctx.fillRect(56,TABLE-52,188,7);
+  ctx.fillStyle='#0b1410';roundRect(104,TABLE-38,92,28,5);ctx.fill();
+  ctx.fillStyle='#caa6ff';ctx.font='bold 17px ui-monospace,monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(fmt(anim.plat)+' g',150,TABLE-24);
+  ctx.fillStyle='#8b97a3';ctx.font='10px sans-serif';ctx.fillText('台ばかり',75,TABLE-24);
+
+}
 function tick(now){
   if(res){
     if(!animInit){resetSim();anim.h=res.h;anim.cup=res.cupV;anim.plat=res.platform;anim.ten=st.hang?res.tension:0;animInit=true;lastT=now;}
@@ -558,7 +593,7 @@ function tick(now){
     for(let i=0;i<n;i++) dyn=dynStep(sim,p,res.L,dt);
     if(!dyn) dyn=dynStep(sim,p,res.L,0);
     // 落ち着いたら、けいさん結果とぴったり同じ表示にする
-    const settled=Math.abs(sim.y-res.y)<0.003&&Math.abs(sim.v)<0.05;
+    const settled=Math.abs(sim.v)<0.05&&(res.pos==='free-neutral'?Math.abs(dyn.d-st.H)<1e-6:Math.abs(sim.y-res.y)<0.003);
     anim.h=settled?res.h:dyn.h;
     anim.ten=settled?(st.hang?res.tension:0):dyn.T;
     anim.ext=st.hang?Math.max(0,res.A-sim.y):0;
@@ -571,7 +606,7 @@ function tick(now){
     anim.cup+=(res.cupV-anim.cup)*0.12; if(Math.abs(res.cupV-anim.cup)<0.02)anim.cup=res.cupV;
     anim.stream=Math.max(anim.stream*0.9,(anim.cup-prevCup)>0.05?1:0);
   }
-  draw();
+  draw(); drawPlat();
   requestAnimationFrame(tick);
 }
 
@@ -579,11 +614,15 @@ function tick(now){
 const $=id=>document.getElementById(id);
 function updateReadouts(){
   const lq=liqObj(), m=matObj(), r=res;
-  $('rhoOLabel').textContent=st.rhoO.toFixed(1)+' g/cm³';
-  $('vLabel').textContent=st.V+' cm³';
+  $('wLabel').textContent=st.W+' g';
+  $('appNote').textContent=st.overflow?`ビーカー：底面積${SC}cm²・容器${BASE}g・${lq.name}をあふれ口（深さ${H_SPOUT}cm＝${V_FULL}cm³）までいっぱい`:`ビーカー：底面積${SC}cm²・容器${BASE}g・${lq.name}${L0}cm³（深さ${L0/SC}cm）`;
+  $('sLabel').textContent=st.S+' cm²';
+  $('hLabel').textContent=st.H+' cm';
+  const cmp=r.kind==='float'?['＜','f','浮く']:r.kind==='sink'?['＞','s','しずむ']:['＝','n','液体の中で止まる'];
+  $('densBox').innerHTML=`体積 ＝ 底面積 × 高さ ＝ ${st.S} × ${st.H} ＝ <b>${st.V} cm³</b><br>密度 ＝ 重さ ÷ 体積 ＝ ${st.W} ÷ ${st.V} ＝ <b>${dens(st.rhoO)} g/cm³</b><br>${lq.name}は ${lq.rho.toFixed(1)} g/cm³ → <span class="${cmp[1]}">${dens(st.rhoO)} ${cmp[0]} ${lq.rho.toFixed(1)} なので${cmp[2]}</span>`;
   $('rhoLLabel').textContent=lq.name+' '+lq.rho.toFixed(1)+' g/cm³';
   $('hookLabel').textContent=st.hookY.toFixed(1)+' cm';
-  $('rhoOSlider').value=st.rhoO; $('vSlider').value=st.V; $('hookSlider').value=st.hookY;
+  $('wSlider').value=st.W; $('sSlider').value=st.S; $('hSlider').value=st.H; $('hookSlider').value=st.hookY;
   document.querySelectorAll('#matChips .chip').forEach(c=>c.classList.toggle('active',c.dataset.id===st.mat));
   document.querySelectorAll('#liqChips .chip').forEach(c=>c.classList.toggle('active',c.dataset.id===st.liq));
   $('hookCtrl').style.opacity=st.hang?1:.4; $('hookSlider').disabled=!st.hang;
@@ -601,13 +640,13 @@ function updateReadouts(){
   if(r.kind==='float'){
     j.className='status float';
     const below=r.W/lq.rho;
-    j.innerHTML=`${mname} <b>${st.rhoO.toFixed(1)}</b> ＜ ${lq.name} <b>${lq.rho.toFixed(1)}</b> → <b>浮く</b><br>
+    j.innerHTML=`${mname} <b>${dens(st.rhoO)}</b> ＜ ${lq.name} <b>${lq.rho.toFixed(1)}</b> → <b>浮く</b><br>
       浮いているとき 浮力＝重さ＝${fmt(r.W)}g<br>
       ${lq.name}中の体積 ＝ ${fmt(r.W)} ÷ ${lq.rho.toFixed(1)} ＝ <b>${fmt(below)}cm³</b>（全体の${fmt(below/st.V*100)}%）<br>
       液面より上 ＝ ${st.V} − ${fmt(below)} ＝ ${fmt(st.V-below)}cm³`;
   }else if(r.kind==='sink'){
     j.className='status sink';
-    j.innerHTML=`${mname} <b>${st.rhoO.toFixed(1)}</b> ＞ ${lq.name} <b>${lq.rho.toFixed(1)}</b> → <b>しずむ</b><br>
+    j.innerHTML=`${mname} <b>${dens(st.rhoO)}</b> ＞ ${lq.name} <b>${lq.rho.toFixed(1)}</b> → <b>しずむ</b><br>
       全部しずめても浮力は最大 ${fmt(lq.rho*st.V)}g で、重さ ${fmt(r.W)}g より小さい`;
   }else{
     j.className='status neutral';
@@ -616,9 +655,10 @@ function updateReadouts(){
 
   // けいさん
   let f='';
-  f+=`重さ ＝ 密度 × 体積 ＝ ${st.rhoO.toFixed(1)} × ${st.V} ＝ <span class="hl">${fmt(r.W)}g</span><br>`;
-  f+=`${lq.name}中の体積 ＝ 底面積${fmt(r.S)}cm² × ${fmt(r.d)}cm ＝ ${fmt(r.Vsub)}cm³<br>`;
+  f+=`重さ <span class="hl">${fmt(r.W)}g</span>、体積 ${st.V}cm³ → 密度 ${dens(st.rhoO)}g/cm³<br>`;
+  f+=`${lq.name}中の体積 ＝ 底面積${fmt(r.S)}cm² × 深さ${fmt(r.d)}cm ＝ ${fmt(r.Vsub)}cm³<br>`;
   f+=`浮力 ＝ 押しのけた${lq.name}の重さ<br>　　＝ ${lq.rho.toFixed(1)} × ${fmt(r.Vsub)} ＝ <span class="bl">${fmt(r.B)}g</span><br>`;
+  if(!st.overflow&&r.Vsub>0) f+=`水面の上昇 ＝ ${fmt(r.Vsub)} ÷ 容器${SC}cm² ＝ ${fmt(r.h-L0/SC)}cm<br>`;
   if(st.hang){
     if(r.pos==='hang-float') f+=`ばねばかり ＝ 0g <span class="dim">（浮いて糸がたるんでいる。浮力＝重さ）</span><br>`;
     else f+=`ばねばかり ＝ ${fmt(r.W)} − ${fmt(r.B)} ＝ <span class="hl">${fmt(r.tension)}g</span><br>`;
@@ -637,19 +677,27 @@ function updateReadouts(){
 function buildChips(){
   const mc=$('matChips');
   MATS.forEach(mt=>{const b=document.createElement('button');b.className='chip';b.dataset.id=mt.id;b.innerHTML=`${mt.name}<small>${mt.rho}</small>`;
-    b.onclick=()=>{st.mat=mt.id;st.rhoO=mt.rho;st.overflowMax=0;recompute();resetSim();};mc.appendChild(b);});
+    b.onclick=()=>{setW(Math.round(mt.rho*st.V));};mc.appendChild(b);});
   const fb=document.createElement('button');fb.className='chip';fb.dataset.id='free';fb.textContent='じゆう';
   fb.onclick=()=>{st.mat='free';recompute();};mc.appendChild(fb);
   const lc=$('liqChips');
   LIQS.forEach(l=>{const b=document.createElement('button');b.className='chip';b.dataset.id=l.id;b.innerHTML=`${l.name}<small>${l.rho.toFixed(1)}</small>`;
     b.onclick=()=>{st.liq=l.id;st.overflowMax=0;recompute();resetSim();};lc.appendChild(b);});
 }
-$('rhoOSlider').addEventListener('input',e=>{
-  st.rhoO=r1(parseFloat(e.target.value));
-  const hit=MATS.find(mt=>Math.abs(mt.rho-st.rhoO)<1e-9);
-  st.mat=hit?hit.id:'free'; st.overflowMax=0; recompute(); resetSim();
+function setW(w){st.W=Math.min(2000,Math.max(1,Math.round(w)));syncRho();st.overflowMax=0;recompute();resetSim();}
+function setS(v){st.S=Math.min(50,Math.max(2,Math.round(v)));syncRho();st.overflowMax=0;recompute();resetSim();}
+function setH(v){st.H=Math.min(6,Math.max(1,Math.round(v*2)/2));syncRho();st.overflowMax=0;recompute();resetSim();}
+$('wSlider').addEventListener('input',e=>setW(parseInt(e.target.value,10)));
+$('sSlider').addEventListener('input',e=>setS(parseInt(e.target.value,10)));
+$('hSlider').addEventListener('input',e=>setH(parseFloat(e.target.value)));
+// −／＋ボタン（おしっぱなしで連続）
+document.querySelectorAll('.st-btn').forEach(btn=>{
+  let tm=null;
+  const step=()=>{const d=+btn.dataset.d; const t=btn.dataset.t; t==='W'?setW(st.W+d):t==='S'?setS(st.S+d):setH(st.H+d);};
+  const stop=()=>{clearTimeout(tm);clearInterval(tm);tm=null;};
+  btn.addEventListener('pointerdown',e=>{e.preventDefault();step();tm=setTimeout(()=>{tm=setInterval(step,60);},400);});
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,stop));
 });
-$('vSlider').addEventListener('input',e=>{st.V=parseInt(e.target.value,10);st.overflowMax=0;recompute();resetSim();});
 $('hookSlider').addEventListener('input',e=>{st.hookY=parseFloat(e.target.value);recompute();});
 $('cutBtn').onclick=()=>{st.hang=!st.hang;recompute();if(st.hang)resetSim();};
 $('ovBtn').onclick=()=>{st.overflow=!st.overflow;st.overflowMax=0;recompute();resetSim();};
@@ -672,27 +720,35 @@ canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercan
 
 /*QUIZ-START*/
 // ===== もんだい生成 =====
+// どの問題も、じっけんで同じ条件（重さ・底面積・高さ・液体・つるす/切る・あふれ口）を作れる数だけを使う
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const LQ={water:{name:'水',rho:1.0},salt:{name:'食塩水',rho:1.2},alc:{name:'アルコール',rho:0.8}};
-const CATS=[{id:'all',name:'ぜんぶ'},{id:'dens',name:'密度'},{id:'scale',name:'ばねばかり'},{id:'float',name:'浮く物体'},{id:'plat',name:'台ばかり'},{id:'part',name:'とちゅうまで'}];
+const CATS=[{id:'all',name:'ぜんぶ'},{id:'dens',name:'密度'},{id:'scale',name:'ばねばかり'},{id:'float',name:'浮く物体'},{id:'plat',name:'台ばかり'},{id:'part',name:'とちゅうまで'},{id:'level',name:'水面の高さ'},{id:'over',name:'あふれる水'}];
 const VLIST=[20,40,50,60,80,100,120,150,200];
+// 体積だけの問題は、高さ5cmの直方体として実験に出す
+const shp=V=>({S:V/OBJ_H,H:OBJ_H});
+const APP=`底面積${SC}cm²の容器`;   // じっけんの容器
 
 function genDens(){
   const rho=pick([0.5,0.6,0.8,0.9,1.2,1.5,2,2.5,2.7,4,5,7.9]); const V=pick(VLIST); const W=r1(rho*V);
-  const sub=pick(['rho','rho','w','v']);
+  const sub=pick(['rho','rho','w','v','box']);
   const judge=rho<1?`水（1g/cm³）より小さいので、水に入れると<b>浮く</b>。`:`水（1g/cm³）より大きいので、水に入れると<b>しずむ</b>。`;
-  const setup={rhoO:rho,V,liq:'water',hang:false};
+  const setup={rhoO:rho,...shp(V),liq:'water',hang:false};
   if(sub==='rho') return {cat:'dens',text:`体積${V}cm³、重さ${fmt(W)}gの物体があります。`,ask:`この物体の密度は何g/cm³ですか。`,unit:'g/cm³',ans:rho,
     steps:[`密度 ＝ 重さ ÷ 体積`,`＝ ${fmt(W)} ÷ ${V} ＝ <b>${fmt(rho)}</b> g/cm³`,judge],hint:'密度は「1cm³あたりの重さ」。重さ÷体積。',setup,m:'rhoO'};
   if(sub==='w') return {cat:'dens',text:`密度${fmt(rho)}g/cm³の物体が${V}cm³あります。`,ask:`この物体の重さは何gですか。`,unit:'g',ans:W,
     steps:[`重さ ＝ 密度 × 体積`,`＝ ${fmt(rho)} × ${V} ＝ <b>${fmt(W)}</b> g`],hint:'1cm³あたり何gかが密度。それが何cm³あるか。',setup,m:'W'};
-  return {cat:'dens',text:`密度${fmt(rho)}g/cm³の物体の重さをはかると${fmt(W)}gでした。`,ask:`この物体の体積は何cm³ですか。`,unit:'cm³',ans:V,
+  if(sub==='v') return {cat:'dens',text:`密度${fmt(rho)}g/cm³の物体の重さをはかると${fmt(W)}gでした。`,ask:`この物体の体積は何cm³ですか。`,unit:'cm³',ans:V,
     steps:[`体積 ＝ 重さ ÷ 密度`,`＝ ${fmt(W)} ÷ ${fmt(rho)} ＝ <b>${V}</b> cm³`],hint:'重さ ＝ 密度 × 体積 を、体積について考えよう。',setup,m:'V'};
+  // 直方体の寸法から
+  const S=pick([10,20,30,40]), H=pick([2,3,4,5]), Vb=S*H, Wb=r1(rho*Vb);
+  return {cat:'dens',text:`底面積${S}cm²、高さ${H}cmの直方体の重さは${fmt(Wb)}gでした。`,ask:`この直方体の密度は何g/cm³ですか。`,unit:'g/cm³',ans:rho,
+    steps:[`体積 ＝ 底面積 × 高さ ＝ ${S} × ${H} ＝ ${Vb} cm³`,`密度 ＝ ${fmt(Wb)} ÷ ${Vb} ＝ <b>${fmt(rho)}</b> g/cm³`,judge],hint:'まず体積（底面積×高さ）を出そう。',setup:{rhoO:rho,S,H,liq:'water',hang:false},m:'rhoO'};
 }
 function genScale(){
   const rho=pick([2,2.5,2.7,4,5,7.9]); const V=pick([20,40,50,60,80,100,120,150]); const W=r1(rho*V); const R=r1(W-V);
-  const sub=pick(['vol','rho','buoy','liq']);
-  const setup={rhoO:rho,V,liq:'water',hang:true,full:true};
+  const sub=pick(['vol','rho','buoy','liq','liq2']);
+  const setup={rhoO:rho,...shp(V),liq:'water',hang:true,full:true};
   const base=`ある物体をばねばかりにつるすと${fmt(W)}gでした。この物体を水に全部しずめると、ばねばかりは${fmt(R)}gを示しました。`;
   const s1=`浮力 ＝ 空気中 − 水中 ＝ ${fmt(W)} − ${fmt(R)} ＝ ${fmt(V)} g`;
   const s2=`浮力は「押しのけた水の重さ」。水は1cm³で1gなので、押しのけた水は ${V} cm³`;
@@ -701,61 +757,202 @@ function genScale(){
   if(sub==='vol') return {cat:'scale',text:base,ask:`この物体の体積は何cm³ですか。`,unit:'cm³',ans:V,steps:[s1,s2,s3.replace(`${V} cm³`,`<b>${V}</b> cm³`)],hint:'まず浮力を出そう。水1cm³は1g。',setup,m:'Vsub'};
   if(sub==='rho') return {cat:'scale',text:base,ask:`この物体の密度は何g/cm³ですか。`,unit:'g/cm³',ans:rho,steps:[s1,s2,s3,`密度 ＝ ${fmt(W)} ÷ ${V} ＝ <b>${fmt(rho)}</b> g/cm³`],hint:'浮力 → 体積 → 密度 の順。',setup,m:'rhoO'};
   const lid=pick(['salt','alc']); const L=LQ[lid]; const B=r1(L.rho*V); const R2=r1(W-B);
-  return {cat:'scale',text:`体積${V}cm³、重さ${fmt(W)}gの物体をばねばかりにつるし、${L.name}（1cm³あたり${fmt(L.rho)}g）に全部しずめました。`,ask:`ばねばかりは何gを示しますか。`,unit:'g',ans:R2,
+  if(sub==='liq') return {cat:'scale',text:`体積${V}cm³、重さ${fmt(W)}gの物体をばねばかりにつるし、${L.name}（1cm³あたり${fmt(L.rho)}g）に全部しずめました。`,ask:`ばねばかりは何gを示しますか。`,unit:'g',ans:R2,
     steps:[`浮力 ＝ 押しのけた${L.name}の重さ ＝ ${fmt(L.rho)} × ${V} ＝ ${fmt(B)} g`,`ばねばかり ＝ 重さ − 浮力 ＝ ${fmt(W)} − ${fmt(B)} ＝ <b>${fmt(R2)}</b> g`],
     tip:`水なら浮力は${V}g。液体が${L.rho>1?'重い':'軽い'}と浮力も${L.rho>1?'大きく':'小さく'}なる。`,hint:`押しのけた${L.name}の重さは、${L.name}の密度 × 体積。`,setup:{...setup,liq:lid},m:'tension'};
+  // 水と液体の2回はかって、液体の密度を出す（定番）
+  return {cat:'scale',text:`ある物体をばねばかりにつるすと${fmt(W)}g、水に全部しずめると${fmt(R)}g、ある液体に全部しずめると${fmt(R2)}gでした。`,ask:`この液体の密度は何g/cm³ですか。`,unit:'g/cm³',ans:L.rho,
+    steps:[`水での浮力 ＝ ${fmt(W)} − ${fmt(R)} ＝ ${V} g → 体積は ${V} cm³`,`液体での浮力 ＝ ${fmt(W)} − ${fmt(R2)} ＝ ${fmt(B)} g`,`液体の密度 ＝ ${fmt(B)} ÷ ${V} ＝ <b>${fmt(L.rho)}</b> g/cm³`],
+    tip:'同じ体積なら、浮力の比 ＝ 液体の密度の比。',hint:'水の浮力から体積がわかる。液体の浮力 ÷ 体積 ＝ 液体の密度。',setup:{...setup,liq:lid},m:'rhoL'};
 }
 function genFloat(){
   const lid=Math.random()<0.7?'water':'salt'; const L=LQ[lid];
   const rho=lid==='water'?pick([0.5,0.6,0.8,0.9]):pick([0.6,0.9]);
   const V=lid==='water'?pick(VLIST):pick([40,60,80,100,120,160,200]);
   const W=r1(rho*V); const below=r1(W/L.rho); const above=r1(V-below);
-  const sub=pick(['below','above','above','pct']);
-  const setup={rhoO:rho,V,liq:lid,hang:false};
+  const sub=pick(['below','above','above','pct','liq']);
+  const setup={rhoO:rho,...shp(V),liq:lid,hang:false};
   const text=`体積${V}cm³、重さ${fmt(W)}gの物体を${L.name}（1cm³あたり${fmt(L.rho)}g）に入れると、浮きました。`;
   const s1=`浮いているとき、浮力 ＝ 物体の重さ ＝ ${fmt(W)} g`;
   const s2=`浮力 ＝ ${fmt(L.rho)} × （${L.name}中の体積）なので、${L.name}中の体積 ＝ ${fmt(W)} ÷ ${fmt(L.rho)} ＝ ${fmt(below)} cm³`;
   if(sub==='below') return {cat:'float',text,ask:`${L.name}中にしずんでいる部分の体積は何cm³ですか。`,unit:'cm³',ans:below,steps:[s1,s2.replace(`＝ ${fmt(below)} cm³`,`＝ <b>${fmt(below)}</b> cm³`)],hint:'浮いている物体は「浮力＝重さ」。',setup,m:'Vsub'};
   if(sub==='above') return {cat:'float',text,ask:`液面より上に出ている部分の体積は何cm³ですか。`,unit:'cm³',ans:above,steps:[s1,s2,`液面より上 ＝ ${V} − ${fmt(below)} ＝ <b>${fmt(above)}</b> cm³`],hint:'まず液体中の体積を出してから、全体から引こう。',setup,m:'above'};
-  const pct=r1(above/V*100);
-  return {cat:'float',text,ask:`液面より上に出ている部分は、全体の何%ですか。`,unit:'%',ans:pct,steps:[s1,s2,`液面より上 ＝ ${V} − ${fmt(below)} ＝ ${fmt(above)} cm³`,`${fmt(above)} ÷ ${V} × 100 ＝ <b>${fmt(pct)}</b> %`],
-    tip:`近道：液体中の割合 ＝ 物体の密度 ÷ 液体の密度 ＝ ${fmt(rho)} ÷ ${fmt(L.rho)}`,hint:'液体中の割合は「物体の密度 ÷ 液体の密度」。',setup,m:'pct'};
+  if(sub==='pct'){ const pct=r1(above/V*100);
+    return {cat:'float',text,ask:`液面より上に出ている部分は、全体の何%ですか。`,unit:'%',ans:pct,steps:[s1,s2,`液面より上 ＝ ${V} − ${fmt(below)} ＝ ${fmt(above)} cm³`,`${fmt(above)} ÷ ${V} × 100 ＝ <b>${fmt(pct)}</b> %`],
+    tip:`近道：液体中の割合 ＝ 物体の密度 ÷ 液体の密度 ＝ ${fmt(rho)} ÷ ${fmt(L.rho)}`,hint:'液体中の割合は「物体の密度 ÷ 液体の密度」。',setup,m:'pct'}; }
+  // 浮き方から液体の密度を出す
+  const combos=[[0.6,'salt'],[0.9,'salt'],[0.4,'alc'],[0.6,'alc'],[0.5,'water'],[0.8,'water']];
+  const [ro,ll]=pick(combos), LL=LQ[ll], Vq=pick([40,60,80,100,120,160,200]), Wq=r1(ro*Vq), inPct=r1(ro/LL.rho*100), sunk=r1(Wq/LL.rho);
+  return {cat:'float',text:`体積${Vq}cm³、重さ${fmt(Wq)}gの物体をある液体に入れると浮き、全体の${fmt(inPct)}%（${fmt(sunk)}cm³）が液体中にしずみました。`,ask:`この液体の密度は何g/cm³ですか。`,unit:'g/cm³',ans:LL.rho,
+    steps:[`浮いているので 浮力 ＝ 重さ ＝ ${fmt(Wq)} g`,`押しのけた液体は ${fmt(sunk)} cm³ で ${fmt(Wq)} g`,`液体の密度 ＝ ${fmt(Wq)} ÷ ${fmt(sunk)} ＝ <b>${fmt(LL.rho)}</b> g/cm³`],
+    tip:`物体の密度 ${fmt(ro)} ÷ 液体中の割合 ${fmt(inPct/100)} ＝ ${fmt(LL.rho)} でも出せる。`,hint:'浮力（＝重さ）÷ 押しのけた液体の体積。',setup:{rhoO:ro,...shp(Vq),liq:ll,hang:false},m:'rhoL'};
 }
 function genPlat(){
   const rho=pick([2,2.5,2.7,4,5,7.9]); const V=pick([20,40,50,60,80,100,120,150,200]); const W=r1(rho*V);
-  const sub=pick(['plat','plat','spring','cut']);
-  const base=`重さ200gの容器に水を800g入れ、台ばかりにのせると1000gでした。体積${V}cm³、重さ${fmt(W)}gの物体をばねばかりにつるし、容器の底につかないように水に全部しずめました。`;
+  const sub=pick(['plat','plat','spring','cut','float']);
+  const pre=`重さ200gの容器（底面積${SC}cm²）に水を800g入れ、台ばかりにのせると1000gでした。`;
+  const base=pre+`体積${V}cm³、重さ${fmt(W)}gの物体をばねばかりにつるし、容器の底につかないように水に全部しずめました。`;
   const sB=`浮力 ＝ 押しのけた水の重さ ＝ ${V} g`;
+  const hangSet={rhoO:rho,...shp(V),liq:'water',hang:true,full:true};
   if(sub==='plat') return {cat:'plat',text:base,ask:`台ばかりは何gを示しますか。`,unit:'g',ans:1000+V,
-    steps:[sB,`水が物体を${V}gで上に押すと、物体も水を${V}gで下に押しかえす`,`台ばかり ＝ 1000 ＋ ${V} ＝ <b>${1000+V}</b> g`],tip:`ばねばかり（${fmt(W-V)}g）＋台ばかり（${1000+V}g）＝ 1000 ＋ 物体の重さ ${fmt(W)}g`,hint:'台ばかりは「浮力の分だけ」重くなる。',setup:{rhoO:rho,V,liq:'water',hang:true,full:true},m:'platform'};
+    steps:[sB,`水が物体を${V}gで上に押すと、物体も水を${V}gで下に押しかえす`,`台ばかり ＝ 1000 ＋ ${V} ＝ <b>${1000+V}</b> g`],tip:`ばねばかり（${fmt(W-V)}g）＋台ばかり（${1000+V}g）＝ 1000 ＋ 物体の重さ ${fmt(W)}g`,hint:'台ばかりは「浮力の分だけ」重くなる。',setup:hangSet,m:'platform'};
   if(sub==='spring') return {cat:'plat',text:base,ask:`ばねばかりは何gを示しますか。`,unit:'g',ans:r1(W-V),
-    steps:[sB,`ばねばかり ＝ ${fmt(W)} − ${V} ＝ <b>${fmt(W-V)}</b> g`],tip:`台ばかりは 1000 ＋ ${V} ＝ ${1000+V}g。2つの合計は 1000 ＋ ${fmt(W)}。`,hint:'ばねばかり ＝ 重さ − 浮力。',setup:{rhoO:rho,V,liq:'water',hang:true,full:true},m:'tension'};
-  return {cat:'plat',text:base+`そのあと糸を切ると、物体は容器の底にしずみました。`,ask:`このとき台ばかりは何gを示しますか。`,unit:'g',ans:r1(1000+W),
-    steps:[`糸を切ると、ばねばかりが支えていた分もふくめ、物体の重さが全部容器にかかる`,`台ばかり ＝ 1000 ＋ ${fmt(W)} ＝ <b>${fmt(1000+W)}</b> g`],tip:`糸を切る前は 1000＋浮力${V}＝${1000+V}g。ばねばかりの${fmt(W-V)}g分ふえる。`,hint:'物体が全部容器の中にのっている状態。',setup:{rhoO:rho,V,liq:'water',hang:false},m:'platform'};
+    steps:[sB,`ばねばかり ＝ ${fmt(W)} − ${V} ＝ <b>${fmt(W-V)}</b> g`],tip:`台ばかりは 1000 ＋ ${V} ＝ ${1000+V}g。2つの合計は 1000 ＋ ${fmt(W)}。`,hint:'ばねばかり ＝ 重さ − 浮力。',setup:hangSet,m:'tension'};
+  if(sub==='cut') return {cat:'plat',text:base+`そのあと糸を切ると、物体は容器の底にしずみました。`,ask:`このとき台ばかりは何gを示しますか。`,unit:'g',ans:r1(1000+W),
+    steps:[`糸を切ると、ばねばかりが支えていた分もふくめ、物体の重さが全部容器にかかる`,`台ばかり ＝ 1000 ＋ ${fmt(W)} ＝ <b>${fmt(1000+W)}</b> g`],tip:`糸を切る前は 1000＋浮力${V}＝${1000+V}g。ばねばかりの${fmt(W-V)}g分ふえる。`,hint:'物体が全部容器の中にのっている状態。',setup:{rhoO:rho,...shp(V),liq:'water',hang:false},m:'platform'};
+  // 浮かべたとき
+  const ro=pick([0.5,0.6,0.8]), Vf=pick([50,100,150,200]), Wf=r1(ro*Vf);
+  return {cat:'plat',text:pre+`体積${Vf}cm³、重さ${fmt(Wf)}gの木を水に浮かべました。`,ask:`台ばかりは何gを示しますか。`,unit:'g',ans:r1(1000+Wf),
+    steps:[`浮いているとき 浮力 ＝ 重さ ＝ ${fmt(Wf)} g`,`木は全部容器の中にあるので、重さがそのまま加わる`,`台ばかり ＝ 1000 ＋ ${fmt(Wf)} ＝ <b>${fmt(1000+Wf)}</b> g`],tip:`「浮力＝重さ」なので、浮力で考えても 1000＋${fmt(Wf)}。`,hint:'浮いていても、しずんでいても、容器の中の物の重さは全部台ばかりにかかる。',setup:{rhoO:ro,...shp(Vf),liq:'water',hang:false},m:'platform'};
 }
 function genPart(){
-  const S=pick([10,20,30,40]); const V=S*OBJ_H; const rho=pick([2.5,2.7,4,5,7.9]); const W=r1(rho*V); const d=pick([1,2,3,4]);
+  const S=pick([10,20,30,40]); const H=pick([4,5,6]); const V=S*H; const rho=pick([2.5,2.7,4,5,7.9]); const W=r1(rho*V); const d=pick([1,2,3].concat(H>4?[4]:[]));
   const sub=pick(['buoy','spring','spring','deep']);
-  const intro=`底面積${S}cm²、高さ5cm、重さ${fmt(W)}gの直方体をばねばかりにつるしました。`;
+  const intro=`底面積${S}cm²、高さ${H}cm、重さ${fmt(W)}gの直方体をばねばかりにつるしました。`;
   if(sub==='deep') return {cat:'part',text:intro+`この直方体を水に全部しずめ、さらに2cm深くしずめました（底にはつけていません）。`,ask:`ばねばかりは何gを示しますか。`,unit:'g',ans:r1(W-V),
-    steps:[`全部しずめると水中の体積 ＝ ${S} × 5 ＝ ${V} cm³ → 浮力 ${V} g`,`全部しずんだ後は、深くしても押しのける水の体積は変わらない → 浮力は ${V} g のまま`,`ばねばかり ＝ ${fmt(W)} − ${V} ＝ <b>${fmt(W-V)}</b> g`],tip:'「深くするほど浮力が大きくなる」はまちがい。',hint:'浮力を決めるのは「深さ」ではなく「押しのけた体積」。',setup:{rhoO:rho,V,liq:'water',hang:true,full:true},m:'tension'};
+    steps:[`全部しずめると水中の体積 ＝ ${S} × ${H} ＝ ${V} cm³ → 浮力 ${V} g`,`全部しずんだ後は、深くしても押しのける水の体積は変わらない → 浮力は ${V} g のまま`,`ばねばかり ＝ ${fmt(W)} − ${V} ＝ <b>${fmt(W-V)}</b> g`],tip:'「深くするほど浮力が大きくなる」はまちがい。',hint:'浮力を決めるのは「深さ」ではなく「押しのけた体積」。',setup:{rhoO:rho,S,H,liq:'water',hang:true,full:true},m:'tension'};
   const Vs=S*d;
   const text=intro+`直方体の下から${d}cmの部分だけを水にしずめました。`;
   const s1=`水中にある体積 ＝ ${S} × ${d} ＝ ${Vs} cm³`;
-  if(sub==='buoy') return {cat:'part',text,ask:`浮力は何gですか。`,unit:'g',ans:Vs,steps:[s1,`浮力 ＝ 押しのけた水の重さ ＝ <b>${Vs}</b> g`],hint:'水中にある部分の体積を、底面積×しずめた高さ で出そう。',setup:{rhoO:rho,V,liq:'water',hang:true,d},m:'B'};
-  return {cat:'part',text,ask:`ばねばかりは何gを示しますか。`,unit:'g',ans:r1(W-Vs),steps:[s1,`浮力 ＝ ${Vs} g`,`ばねばかり ＝ ${fmt(W)} − ${Vs} ＝ <b>${fmt(W-Vs)}</b> g`],tip:`しずめた高さに比例して浮力がふえる（全部しずむ${OBJ_H}cmまで）。`,hint:'水中にある部分の体積 → 浮力 → 重さから引く。',setup:{rhoO:rho,V,liq:'water',hang:true,d},m:'tension'};
+  const setup={rhoO:rho,S,H,liq:'water',hang:true,d};
+  if(sub==='buoy') return {cat:'part',text,ask:`浮力は何gですか。`,unit:'g',ans:Vs,steps:[s1,`浮力 ＝ 押しのけた水の重さ ＝ <b>${Vs}</b> g`],hint:'水中にある部分の体積を、底面積×しずめた高さ で出そう。',setup,m:'B'};
+  return {cat:'part',text,ask:`ばねばかりは何gを示しますか。`,unit:'g',ans:r1(W-Vs),steps:[s1,`浮力 ＝ ${Vs} g`,`ばねばかり ＝ ${fmt(W)} − ${Vs} ＝ <b>${fmt(W-Vs)}</b> g`],tip:`しずめた高さに比例して浮力がふえる（全部しずむ${H}cmまで）。`,hint:'水中にある部分の体積 → 浮力 → 重さから引く。',setup,m:'tension'};
 }
-const GENS={dens:genDens,scale:genScale,float:genFloat,plat:genPlat,part:genPart};
+function genLevel(){
+  const sub=pick(['full','float','part','back']);
+  const pre=`${APP}に、水が${L0}cm³（深さ${L0/SC}cm）入っています。`;
+  if(sub==='float'){
+    const [ro,Vf]=pick([[0.5,40],[0.5,80],[0.5,120],[0.5,200],[0.6,50],[0.6,100],[0.6,150],[0.8,50],[0.8,100],[0.8,150],[0.8,200]]);
+    const Wf=r1(ro*Vf), rise=r1(Wf/SC);
+    return {cat:'level',text:pre+`体積${Vf}cm³、重さ${fmt(Wf)}gの木を浮かべました。`,ask:`水面は何cm上がりますか。`,unit:'cm',ans:rise,
+      steps:[`浮いているので 浮力 ＝ 重さ ＝ ${fmt(Wf)} g → 押しのけた水は ${fmt(Wf)} cm³`,`水面の上昇 ＝ 押しのけた体積 ÷ 容器の底面積 ＝ ${fmt(Wf)} ÷ ${SC} ＝ <b>${fmt(rise)}</b> cm`],
+      tip:`木の体積${Vf}cm³で割らないこと。水中にある分だけが水を押しのける。`,hint:'押しのけた水の体積 ÷ 容器の底面積。浮いている物は重さ分の水を押しのける。',setup:{rhoO:ro,...shp(Vf),liq:'water',hang:false},m:'rise'};
+  }
+  const rho=pick([2.5,2.7,4,7.9]);
+  if(sub==='part'){
+    const S=pick([10,20,30,40]), H=pick([4,5,6]), d=pick([1,2,3]), Vs=S*d, rise=r1(Vs/SC);
+    return {cat:'level',text:pre+`底面積${S}cm²、高さ${H}cmの直方体をばねばかりにつるし、下から${d}cmの部分だけを水中に入れました。`,ask:`はじめより水面は何cm上がりましたか。`,unit:'cm',ans:rise,
+      steps:[`水中にある体積 ＝ ${S} × ${d} ＝ ${Vs} cm³`,`水面の上昇 ＝ ${Vs} ÷ ${SC} ＝ <b>${fmt(rise)}</b> cm`],tip:`ばねばかりを下げた長さと、水中の深さは同じではない（水面も上がるから）。`,hint:'水中にある部分の体積 ÷ 容器の底面積。',setup:{rhoO:rho,S,H,liq:'water',hang:true,d},m:'rise'};
+  }
+  const V=pick([20,40,50,60,80,100,120,150,200]), rise=r1(V/SC);
+  if(sub==='full') return {cat:'level',text:pre+`体積${V}cm³の物体を糸でつるし、水に全部しずめました。`,ask:`水面は何cm上がりますか。`,unit:'cm',ans:rise,
+    steps:[`押しのけた水の体積 ＝ 物体の体積 ＝ ${V} cm³`,`水面の上昇 ＝ ${V} ÷ ${SC} ＝ <b>${fmt(rise)}</b> cm`],hint:'押しのけた水の体積 ÷ 容器の底面積。',setup:{rhoO:rho,...shp(V),liq:'water',hang:true,full:true},m:'rise'};
+  return {cat:'level',text:pre+`ある物体を糸でつるして水に全部しずめると、水面が${fmt(rise)}cm上がりました。`,ask:`この物体にはたらく浮力は何gですか。`,unit:'g',ans:V,
+    steps:[`上がった分の水の体積 ＝ ${SC} × ${fmt(rise)} ＝ ${V} cm³（押しのけた体積）`,`浮力 ＝ 押しのけた水の重さ ＝ <b>${V}</b> g`],hint:'容器の底面積 × 上がった高さ ＝ 押しのけた体積。',setup:{rhoO:rho,...shp(V),liq:'water',hang:true,full:true},m:'B'};
+}
+function genOver(){
+  const sub=pick(['sink','float','plat']);
+  const pre=`あふれ口のある容器に、水をあふれ口までいっぱいに入れました。`;
+  if(sub==='float'){
+    const ro=pick([0.5,0.6,0.8,0.9]), V=pick([50,100,150,200]), W=r1(ro*V);
+    return {cat:'over',text:pre+`体積${V}cm³、重さ${fmt(W)}gの物体を静かに入れると浮きました。`,ask:`あふれた水は何gですか。`,unit:'g',ans:W,
+      steps:[`浮いているので 浮力 ＝ 重さ ＝ ${fmt(W)} g`,`浮力 ＝ 押しのけた（あふれた）水の重さ → <b>${fmt(W)}</b> g`],tip:`体積${V}cm³ぶんではない。水中にある${fmt(W)}cm³ぶんだけあふれる。`,hint:'あふれた水 ＝ 押しのけた水。浮いている物は重さと同じだけ押しのける。',setup:{rhoO:ro,...shp(V),liq:'water',hang:false,overflow:true},m:'cupW'};
+  }
+  const rho=pick([2.5,2.7,4,7.9]), V=pick([20,40,50,60,80,100,120,150,200]), W=r1(rho*V);
+  const setup={rhoO:rho,...shp(V),liq:'water',hang:true,full:true,overflow:true};
+  if(sub==='sink') return {cat:'over',text:pre+`体積${V}cm³、重さ${fmt(W)}gの物体をばねばかりにつるし、全部しずめました。`,ask:`あふれた水は何gですか。`,unit:'g',ans:V,
+    steps:[`全部しずめたので、押しのけた水 ＝ 物体の体積 ＝ ${V} cm³`,`水1cm³は1g → あふれた水は <b>${V}</b> g（＝浮力）`],tip:`ばねばかりは ${fmt(W)} − ${V} ＝ ${fmt(W-V)} g。`,hint:'押しのけた水の分だけあふれる。',setup,m:'cupW'};
+  return {cat:'over',text:`重さ200gのあふれ口つき容器に、水を1000gあふれ口までいっぱいに入れ、台ばかりにのせると1200gでした。体積${V}cm³、重さ${fmt(W)}gの物体をばねばかりにつるし、底につかないように全部しずめました。あふれた水は容器の外に出ていきます。`,ask:`台ばかりは何gを示しますか。`,unit:'g',ans:1200,
+    steps:[`浮力の分だけ、台ばかりは ${V} g ふえる`,`あふれた水 ${V} g の分だけ、台ばかりは減る`,`差し引き 0 → 台ばかりは <b>1200</b> g のまま`],tip:'「あふれた水＝浮力」なので、つるしたままなら台ばかりは変わらない。',hint:'ふえる分（浮力）と、へる分（あふれた水）をくらべよう。',setup,m:'platform'};
+}
+const GENS={dens:genDens,scale:genScale,float:genFloat,plat:genPlat,part:genPart,level:genLevel,over:genOver};
 function genQ(cat){const c=cat==='all'?pick(Object.keys(GENS)):cat;return GENS[c]();}
-// もんだいの設定 → じっけんの高さ
+// もんだいの設定 → じっけんの「つるす高さ」
 function hookForSetup(s){
   if(!s.hang) return null;
   if(s.full) return HOOK_MIN;
-  const S=s.V/OBJ_H; const h=(L0+S*s.d)/SC; const y=h-s.d;
-  const rl={water:1,salt:1.2,alc:0.8}[s.liq]; const B=rl*S*s.d;
-  return y-B/springK(s.rhoO*s.V);   // ばねがちぢむ分を見こんだ高さ
+  const h=(L0+s.S*s.d)/SC; const y=h-s.d;
+  const rl={water:1,salt:1.2,alc:0.8}[s.liq]; const B=rl*s.S*s.d;
+  return y-B/springK(s.rhoO*s.S*s.H);   // ばねがちぢむ分を見こんだ高さ
 }
 /*QUIZ-END*/
+
+// ===== 解説：考え方・まちがえやすい点 =====
+const POINTS={
+  dens:'密度は「1cm³あたりの重さ」。<b>密度 ＝ 重さ ÷ 体積</b>、<b>重さ ＝ 密度 × 体積</b>、<b>体積 ＝ 重さ ÷ 密度</b> の3つはセットでおぼえよう。水の密度は1g/cm³なので、1より大きい物は水にしずみ、小さい物は浮く。',
+  scale:'水の中でばねばかりが軽くなるのは、水が物体を上に押すから。その力が<b>浮力</b>で、大きさは<b>押しのけた液体の重さ</b>（アルキメデスの原理）。<br>水は1cm³で1gなので、<b>水中での浮力（g）の数字 ＝ 水中にある体積（cm³）の数字</b>になる。',
+  float:'浮いて止まっている物体は、<b>浮力 ＝ 物体の重さ</b>でつりあっている。だから「重さ」から「押しのけた液体の体積（液体中の体積）」がわかる。<br>液体中の体積 ＝ 重さ ÷ 液体の密度。',
+  plat:'水が物体を上に押す（浮力）と、物体も同じ大きさで水を下に押しかえす。だから台ばかりは<b>浮力の分だけ重くなる</b>。<br>つるしている糸（ばねばかり）が支えている分は、台ばかりにはかからない。',
+  part:'浮力を決めるのは、<b>液体の中にある部分の体積</b>だけ。直方体なら <b>底面積 × 水中にある高さ</b> で出せる。全部しずんだあとは、深くしても浮力は変わらない。',
+  level:'水面が上がった分の水の体積 ＝ <b>押しのけた体積</b>。だから<br><b>水面の上昇 ＝ 押しのけた体積 ÷ 容器の底面積</b>。',
+  over:'あふれた水は、物体が<b>押しのけた水</b>そのもの。だから<b>あふれた水の重さ ＝ 浮力</b>。'
+};
+const TRAPS={
+  'dens:rhoO':'体積 ÷ 重さ と逆にしないこと。「1cm³あたり」なので<b>体積でわる</b>。',
+  'dens:W':'密度だけ答えないこと。「1cm³あたり」の重さに<b>体積をかける</b>。',
+  'dens:V':'重さ × 密度 としないこと。重さを<b>密度でわる</b>。',
+  'scale:B':'水中でのばねばかりの値を、そのまま浮力と答えないこと。浮力は<b>軽くなった分</b>。',
+  'scale:Vsub':'水中でのばねばかりの値から体積を出さないこと。体積は<b>浮力（軽くなった分）</b>からわかる。',
+  'scale:rhoO':'水中の値でわらないこと。密度 ＝ <b>空気中の重さ</b> ÷ 体積。',
+  'scale:tension':'液体の密度をかけ忘れて、水と同じ浮力にしないこと。',
+  'scale:rhoL':'ばねばかりの値どうしの比ではなく、<b>浮力どうしの比</b>が密度の比になる。',
+  'float:Vsub':'浮いているのに「体積全部 × 液体の密度」を浮力にしないこと。浮力は<b>重さと同じ</b>。',
+  'float:above':'液体中の体積を答えて終わりにしないこと。聞かれているのは<b>液面より上</b>。',
+  'float:pct':'液体中の割合と、液面より上の割合をとりちがえないこと。',
+  'float:rhoL':'物体の体積全部でわらないこと。わるのは<b>液体中にある体積</b>。',
+  'plat:platform':'つるしているときに、物体の重さを全部たさないこと。たすのは<b>浮力の分だけ</b>（糸を切ったり浮いたりして、全部容器にのっているときだけ重さを全部たす）。',
+  'plat:tension':'台ばかりの値とまぜないこと。ばねばかり ＝ 重さ − 浮力。',
+  'part:B':'物体全体の体積を使わないこと。使うのは<b>水中にある部分</b>だけ。',
+  'part:tension':'物体全体の体積で浮力を出さないこと。全部しずむまでは、しずめた高さに比例。',
+  'level:rise':'物体の底面積でわらないこと。わるのは<b>容器の底面積</b>。',
+  'level:B':'上がった高さ（cm）をそのまま浮力にしないこと。<b>容器の底面積をかけて体積</b>にしてから。',
+  'over:cupW':'浮く物体は、体積全部の水をあふれさせるわけではない。あふれるのは<b>水中にある分だけ</b>。',
+  'over:platform':'「あふれた分へる」だけでなく、<b>浮力の分ふえる</b>ことも考える。'
+};
+
+// ===== 図（もんだい用・解説用） =====
+function figSVG(q,reveal){
+  const s=q.setup, rl={water:1,salt:1.2,alc:0.8}[s.liq], lname={water:'水',salt:'食塩水',alc:'アルコール'}[s.liq];
+  const hook=hookForSetup(s);
+  const r=solve({rhoO:s.rhoO,S:s.S,H:s.H,rhoL:rl,hookY:hook==null?HOOK_MAX:hook,hang:s.hang,overflow:!!s.overflow,overflowMax:0});
+  const P=11, X0=40, X1=X0+10*P, YB0=200, cx=(X0+X1)/2, y=v=>YB0-v*P;
+  const w=Math.sqrt(s.S)*P*0.95, hh=s.H*P, ob=y(r.y), ot=ob-hh, lv=y(r.h);
+  let g='';
+  g+=`<rect x="${X0}" y="${lv}" width="${X1-X0}" height="${YB0-lv}" fill="rgba(111,211,255,.18)"/>`;
+  if(!s.overflow&&r.h-L0/SC>0.01){ g+=`<line x1="${X0}" y1="${y(L0/SC)}" x2="${X1+8}" y2="${y(L0/SC)}" stroke="#8b97a3" stroke-dasharray="3 3"/>`; }
+  const objCol=s.rhoO<1?'#c99a5e':'#aeb8c4';
+  g+=`<rect x="${cx-w/2}" y="${ot}" width="${w}" height="${hh}" fill="${objCol}" stroke="#e8edf2" stroke-width="1.2"/>`;
+  if(r.d>0.01) g+=`<rect x="${cx-w/2}" y="${Math.max(ot,lv)}" width="${w}" height="${ob-Math.max(ot,lv)}" fill="rgba(111,184,255,.28)" stroke="#6fb8ff" stroke-dasharray="3 2"/>`;
+  g+=`<line x1="${X0}" y1="${lv}" x2="${X1}" y2="${lv}" stroke="#9fe0ff" stroke-width="1.6"/>`;
+  // 容器
+  const rim=y(13);
+  if(s.overflow){ g+=`<path d="M${X0} ${rim} V${YB0} H${X1} V${y(10)+3} M${X1} ${y(10)-3} V${rim}" fill="none" stroke="#cfd8e2" stroke-width="2.5"/><path d="M${X1} ${y(10)+3} l22 9 M${X1} ${y(10)-3} l24 6" stroke="#cfd8e2" stroke-width="2.5" fill="none"/>`;
+    const cupH=Math.min(40,r.cupV/50*P); g+=`<rect x="${X1+30}" y="${YB0+14-cupH}" width="44" height="${cupH}" fill="rgba(111,211,255,.3)"/><path d="M${X1+30} ${YB0-30} V${YB0+14} H${X1+74} V${YB0-30}" fill="none" stroke="#cfd8e2" stroke-width="2"/>`;
+  } else g+=`<path d="M${X0} ${rim} V${YB0} H${X1} V${rim}" fill="none" stroke="#cfd8e2" stroke-width="2.5"/>`;
+  // 台ばかり
+  if(q.cat==='plat'||q.cat==='over') g+=`<rect x="${X0-12}" y="${YB0+2}" width="${X1-X0+24}" height="14" rx="3" fill="#2b333c" stroke="#4a5664"/><text x="${cx}" y="${YB0+12.5}" fill="#caa6ff" font-size="11" font-weight="700" text-anchor="middle">台ばかり</text>`;
+  // ばねばかり
+  if(s.hang){ const hy=Math.min(ot-14,rim-10); g+=`<line x1="${cx}" y1="${hy}" x2="${cx}" y2="${ot}" stroke="#e8edf2"/><rect x="${cx-9}" y="${hy-40}" width="18" height="38" rx="4" fill="#2f3946" stroke="#9fb0c4"/><path d="M${cx} ${hy-36} l4 4 l-8 4 l8 4 l-8 4 l8 4 l-4 4" fill="none" stroke="#b08be8" stroke-width="1.3"/>`;
+    g+=`<text x="${cx-14}" y="${hy-17}" fill="#ffb454" font-size="12" font-weight="700" text-anchor="end">ばねばかり</text>`; }
+  // 寸法
+  if(q.cat==='part'||(q.cat==='level'&&s.d)||(q.cat==='dens'&&s.S!==s.S*s.H/OBJ_H)){
+    g+=`<path d="M${cx-w/2-6} ${ot} V${ob} M${cx-w/2-9} ${ot} h6 M${cx-w/2-9} ${ob} h6" stroke="#e8edf2" fill="none"/><text x="${cx-w/2-10}" y="${(ot+ob)/2+3}" fill="#e8edf2" font-size="12" text-anchor="end">${s.H}cm</text>`;
+    g+=`<text x="${cx}" y="${ot-4}" fill="#e8edf2" font-size="12" text-anchor="middle">${s.hang?'':'底面積'+s.S+'cm²'}</text>`;
+  }
+  if(s.d){ g+=`<path d="M${cx+w/2+5} ${lv} V${ob}" stroke="#6fb8ff" stroke-width="1.5"/><text x="${cx+w/2+8}" y="${(lv+ob)/2+3}" fill="#6fb8ff" font-size="12" font-weight="700">${s.d}cm</text>`; }
+  // 力の矢印
+  const k=48/Math.max(r.W,1), my=(ot+ob)/2;
+  g+=`<line x1="${cx}" y1="${my}" x2="${cx}" y2="${my+r.W*k}" stroke="#ff8a6b" stroke-width="2.4"/><path d="M${cx-4} ${my+r.W*k-6} L${cx} ${my+r.W*k+1} L${cx+4} ${my+r.W*k-6}Z" fill="#ff8a6b"/>`;
+  if(r.B>0.01){ const bx=cx+w/2+(s.d?22:8); g+=`<line x1="${bx}" y1="${ob}" x2="${bx}" y2="${ob-r.B*k}" stroke="#6fb8ff" stroke-width="2.4"/><path d="M${bx-4} ${ob-r.B*k+6} L${bx} ${ob-r.B*k-1} L${bx+4} ${ob-r.B*k+6}Z" fill="#6fb8ff"/>`; }
+  // 右側の数字
+  const rows=[];
+  rows.push(['#e8edf2',`${lname}（${rl.toFixed(1)}g/cm³）`]);
+  if(reveal){
+    rows.push(['#ff8a6b',`重さ ${fmt(r.W)}g`]);
+    rows.push(['#6fb8ff',`浮力 ${fmt(r.B)}g`]);
+    rows.push(['#9fe0ff',`液体中の体積 ${fmt(r.Vsub)}cm³`]);
+    if(!s.overflow&&r.h-L0/SC>0.01) rows.push(['#9fe0ff',`水面 ＋${fmt(r.h-L0/SC)}cm`]);
+    if(s.overflow) rows.push(['#9fe0ff',`あふれた水 ${fmt(r.cupW)}g`]);
+    if(s.hang) rows.push(['#ffb454',`ばねばかり ${fmt(r.tension)}g`]);
+    if(q.cat==='plat'||q.cat==='over') rows.push(['#caa6ff',`台ばかり ${fmt(r.platform)}g`]);
+  } else {
+    rows.push(['#ff8a6b','重さ'],['#6fb8ff','浮力']);
+  }
+  const tx=X1+(s.overflow?84:20);
+  const top=Math.min(rim-62,ot-10);
+  rows.forEach((rw,i)=>{g+=`<text x="${tx}" y="${top+24+i*19}" fill="${rw[0]}" font-size="13" font-weight="700">${rw[1]}</text>`;});
+  return `<svg viewBox="${X0-30} ${top} ${tx+170-(X0-30)} ${YB0+22-top}" xmlns="http://www.w3.org/2000/svg" font-family="sans-serif">${g}</svg>`;
+}
 
 // ===== もんだいUI =====
 const qs={cat:'all',q:null,answered:false,tried:0,correct:0,streak:0,best:0};
@@ -773,6 +970,7 @@ function newQ(){
   $('qTag').textContent=CATS.find(c=>c.id===qs.q.cat).name;
   $('qText').innerHTML=qs.q.text+'<br><span class="q-ask">'+qs.q.ask+'</span>';
   $('qUnit').textContent=qs.q.unit;
+  $('qFig').innerHTML=figSVG(qs.q,false);
   $('qInput').value='';$('qFeedback').innerHTML='';
   $('qCheck').disabled=false;
 }
@@ -789,16 +987,35 @@ function checkQ(){
   if(ok){qs.correct++;qs.streak++;if(qs.streak>qs.best){qs.best=qs.streak;try{localStorage.setItem('furyoku-best',String(qs.best));}catch(e){}}}
   else qs.streak=0;
   renderScore();
-  const steps='<ol>'+qs.q.steps.map(s=>'<li>'+s+'</li>').join('')+'</ol>';
-  $('qFeedback').innerHTML=`<div class="feedback ${ok?'ok':'ng'}"><div class="head">${ok?'◎ 正解！':'× ざんねん　正解は '+fmt(qs.q.ans)+' '+qs.q.unit}</div>${steps}${qs.q.tip?'<div class="tip">💡 '+qs.q.tip+'</div>':''}</div>`;
+  showExplain(ok?'ok':'ng',v);
+}
+function showExplain(kind,v){
+  const q=qs.q;
+  const head=kind==='ok'?'◎ 正解！':kind==='ng'?'× ざんねん':'答えと解説';
+  const ansLine=`正解：<b>${fmt(q.ans)} ${q.unit}</b>${kind==='ng'?`　（あなたの答え：${fmt(v)} ${q.unit}）`:''}`;
+  const steps='<ol>'+q.steps.map(s=>'<li>'+s+'</li>').join('')+'</ol>';
+  const trap=TRAPS[q.cat+':'+q.m];
+  $('qFeedback').innerHTML=`<div class="feedback ${kind}">
+    <div class="head">${head}</div><div class="ans-line">${ansLine}</div>
+    <div class="ex-sec point"><h3>考え方</h3>${POINTS[q.cat]}</div>
+    <div class="ex-sec"><h3>とき方</h3>${steps}</div>
+    <div class="ex-sec"><h3>図で見ると</h3><div class="q-fig">${figSVG(q,true)}</div></div>
+    ${trap?`<div class="ex-sec trap"><h3>まちがえやすいところ</h3>${trap}</div>`:''}
+    ${q.tip?`<div class="ex-sec tipb"><h3>ワンポイント</h3>${q.tip}</div>`:''}
+    <div class="ex-sec" style="font-size:12.5px;color:var(--text-dim)">「じっけんでたしかめる」で、同じ条件を動かして見られます。</div>
+  </div>`;
 }
 $('qCheck').onclick=checkQ;
 $('qInput').addEventListener('keydown',e=>{if(e.key==='Enter'){qs.answered?newQ():checkQ();}});
 $('qNext').onclick=newQ;
+$('qShow').onclick=()=>{
+  if(!qs.answered){qs.answered=true;qs.tried++;qs.streak=0;renderScore();}
+  showExplain('show');
+};
 $('qHint').onclick=()=>{if(!qs.answered)$('qFeedback').innerHTML=`<div class="feedback" style="border:1px solid var(--panel-edge)">ヒント：${qs.q.hint}</div>`;};
 $('qLab').onclick=()=>{
   const s=qs.q.setup;
-  st.rhoO=s.rhoO; st.V=s.V; st.liq=s.liq; st.hang=s.hang; st.overflow=false; st.overflowMax=0;
+  st.S=s.S; st.H=s.H; st.W=Math.round(s.rhoO*s.S*s.H); syncRho(); st.liq=s.liq; st.hang=s.hang; st.overflow=!!s.overflow; st.overflowMax=0;
   const hit=MATS.find(mt=>Math.abs(mt.rho-s.rhoO)<1e-9); st.mat=hit?hit.id:'free';
   const hy=hookForSetup(s); if(hy!=null) st.hookY=hy; else st.hookY=HOOK_MAX;
   recompute(); resetSim(); showTab('lab'); window.scrollTo({top:0,behavior:'smooth'});
